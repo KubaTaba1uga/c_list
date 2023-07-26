@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "double_linked_list.h"
+#include "dl_list.h"
 
 void init_dl_list(dl_list *l) {
   l->head = NULL;
