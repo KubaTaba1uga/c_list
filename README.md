@@ -10,10 +10,14 @@ For build I use make.
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+### Library
+```
+make install
+```
 
-```bash
-pip install foobar
+### Development
+```
+make install[dev]
 ```
 
 ## Usage
@@ -29,6 +33,12 @@ foobar.pluralize('goose')
 
 # returns 'phenomenon'
 foobar.singularize('phenomena')
+```
+
+## Test
+
+```
+make tests
 ```
 
 ## Contributing
