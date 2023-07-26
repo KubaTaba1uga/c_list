@@ -2,7 +2,7 @@
 
 #include "../src/dl_body.h"
 
-Test(init_dl_body, test_correct_value) {
+Test(init_dl_body, test_valid_value) {
   dl_body b;
   int value = 9;
 
@@ -17,13 +17,11 @@ Test(init_dl_body, test_correct_value) {
             "Expected \"b.value\" to have a value of 9.");
 }
 
-Test(init_dl_body, test_incorrect_value) {
+Test(init_dl_body, test_invalid_value) {
   dl_body b;
   int *value = NULL;
 
-  init_dl_body(&b, value);
-
-  int *received_value = ((int *)b.value);
+  dl_body *received_value = init_dl_body(&b, value);
 
   cr_expect(received_value == NULL,
             "Expected \"b.value\" to have a value of NULL.");
