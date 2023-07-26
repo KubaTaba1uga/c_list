@@ -32,7 +32,7 @@ foobar.singularize('phenomena')
 ## Test
 
 ```
-make tests
+make test && ./test
 ```
 
 ## Contributing
