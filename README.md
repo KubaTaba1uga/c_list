@@ -10,14 +10,8 @@ For build I use gcc and make.
 
 ## Installation
 
-### Library
 ```
-make install
-```
-
-### Development
-```
-make install[dev]
+pip install foo
 ```
 
 ## Usage
