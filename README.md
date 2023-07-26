@@ -1,6 +1,6 @@
 # C double linked list
 
-The project is a library containing one data structure: double linked list.
+c_double_linked_list is a library containing one data structure: double linked list.
 
 Purpose of the project is educational. I want to learn how C external libs are being built, installed and used.
 
