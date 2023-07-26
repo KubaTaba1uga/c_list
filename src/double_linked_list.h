@@ -1,5 +1,3 @@
-#include <stddef.h>
-
 typedef struct dl_body {
   void *value;
   struct dl_body *next;
@@ -13,9 +11,4 @@ typedef struct {
   int length;
 } dl_list;
 
-void init_dl_list(dl_list *l) {
-  l->body = NULL;
-  l->head = NULL;
-  l->tail = NULL;
-  l->length = 0;
-}
+void init_dl_list(dl_list *l);
