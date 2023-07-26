@@ -2,10 +2,10 @@
 
 The project is a library containing one data structure: double linked list.
 
-Purpose of the project is educational.
+Purpose of the project is educational. I want to learn how C external libs are being built, installed and used.
 
 For tests I use [criterion](https://github.com/Snaipe/Criterion).
-For build I use make.
+For build I use gcc and make.
 
 
 ## Installation
