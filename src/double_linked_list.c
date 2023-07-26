@@ -6,7 +6,7 @@ typedef struct dl_body {
   struct dl_body *prev;
 } dl_body;
 
-typedef struct {
+typedef struct dl_list {
   struct dl_body *head;
   struct dl_body *tail;
   struct dl_body *body;
