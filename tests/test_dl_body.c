@@ -49,17 +49,29 @@ Test(set_dl_body, test_valid_value) {
             "Expected \"b.value\" to have address of \"value_b\".");
 }
 
-ParameterizedTestParameters(dl_body_ready, single) {
-  dl_body *ready_body;
+ParameterizedTestParameters(dl_body_in_list_ctx, test_getters) {
+  /* Body chunk in list context has setted up attributes: */
+  /*   - next */
+  /*   - prev */
+  /*   - value */
+  dl_body *ready_body, *next_body, *prev_body;
   int *value_p;
   int value = 5;
 
   ready_body = (dl_body *)cr_malloc(sizeof(dl_body));
+  next_body = (dl_body *)cr_malloc(sizeof(dl_body));
+  prev_body = (dl_body *)cr_malloc(sizeof(dl_body));
   value_p = (int *)cr_malloc(sizeof(int));
 
-  ready_body->next = NULL;
-  ready_body->prev = NULL;
-  ready_body->value = value_p;
+  init_dl_body(ready_body, value_p);
+  init_dl_body(next_body, value_p);
+  init_dl_body(prev_body, value_p);
+
+  set_prev_dl_body(ready_body, prev_body);
+  set_next_dl_body(prev_body, ready_body);
+
+  set_prev_dl_body(next_body, ready_body);
+  set_next_dl_body(ready_body, next_body);
 
   *value_p = value;
 
@@ -67,7 +79,7 @@ ParameterizedTestParameters(dl_body_ready, single) {
 }
 
 #include <criterion/new/assert.h>
-ParameterizedTest(dl_body *val, dl_body_ready, single) {
+ParameterizedTest(dl_body *val, dl_body_in_list_ctx, test_getters) {
   /* cr_fatal("Parameter: %p", val->value); */
   cr_fatal("Parameter: %i", *(int *)val->value);
 }
