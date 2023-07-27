@@ -1,10 +1,13 @@
-#include <criterion/criterion.h>
-#include <criterion/internal/assert.h>
-
 #include <stddef.h>
 #include <stdio.h>
 
-#include "../src/list.h"
+#include <criterion/criterion.h>
+#include <criterion/new/assert.h>
+
+// including source file instead of header file allows
+//   for static functions testing.
+// Do not forget adding `-zmuldefs` to gcc.
+#include "../src/list.c"
 
 Test(init_list, success) {
   list l;
@@ -24,11 +27,21 @@ Test(count_new_size_list, 0and1000) {
 
   size = l_count_new_size(len, size);
   len = size;
-  printf("%i\n", size);
+
+  cr_assert(eq(ulong, (unsigned long int)size, (unsigned long int)1000));
+
   size = l_count_new_size(len, size);
   len = size;
-  printf("%i\n", size);
+
+  cr_assert(eq(ulong, (unsigned long int)size, (unsigned long int)2500));
+
   size = l_count_new_size(len, size);
   len = size;
-  printf("%i\n", size);
+
+  cr_assert(eq(ulong, (unsigned long int)size, (unsigned long int)6250));
+
+  size = l_count_new_size(len, size);
+  len = size;
+
+  cr_assert(eq(ulong, (unsigned long int)size, (unsigned long int)15625));
 }

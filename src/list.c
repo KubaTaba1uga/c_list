@@ -16,18 +16,11 @@
  * https://stackoverflow.com/questions/19206005/array-of-structs-memory-realloc-stderr/19206121#19206121
  */
 
-#include <stddef.h>
 #include <stdlib.h>
 
 #include "list.h"
 
-#ifndef UNITTESTS
-#define STATIC
-#else
-#define STATIC static
-#endif
-
-STATIC size_t l_count_new_size(int max_i, size_t size) {
+static size_t l_count_new_size(int max_i, size_t size) {
 
   /* For init max_i=0 and default_size=1000, it goes sth like: */
   /*	1000 -> 2500 -> 6250 -> 8125 -> 13187 -> 20780 */
@@ -35,9 +28,9 @@ STATIC size_t l_count_new_size(int max_i, size_t size) {
   return (size_t)(3 * max_i / 2 + (int)size);
 }
 
-STATIC size_t l_get_pointer_size(void) { return sizeof(void *); }
+static size_t l_get_pointer_size(void) { return sizeof(void *); }
 
-STATIC size_t l_count_new_size_with_pointer(int max_i, size_t size) {
+static size_t l_count_new_size_with_pointer(int max_i, size_t size) {
   return l_count_new_size(max_i, size) * l_get_pointer_size();
 }
 

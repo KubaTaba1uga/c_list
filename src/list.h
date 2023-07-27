@@ -18,9 +18,6 @@
 
 #include <stddef.h>
 
-#ifndef LIST_H_ /* Include guard */
-#define LIST_H_
-
 typedef struct {
 
   /* `body` is an array of generic pointers. */
@@ -39,5 +36,3 @@ typedef struct {
 
 extern void *l_init_body(list *l, size_t default_size);
 extern void *l_init_list(list *l, size_t default_size);
-
-#endif
