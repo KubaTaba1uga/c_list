@@ -56,11 +56,11 @@ void dl_body_in_list_ctx_cleanup(struct criterion_test_params *crp) {
 
   dl_body *b_to_clean[] = {b, b_next, b_prev};
 
-  int i;
+  int max_i = (int)(sizeof(b_to_clean) / sizeof(dl_body *));
 
-  for (i = 0; i < (int)(sizeof(b_to_clean) / sizeof(dl_body *)); i++) {
-    cr_free(b_to_clean[i]->value);
-    cr_free(b_to_clean[i]);
+  while (max_i--) {
+    cr_free(b_to_clean[max_i]->value);
+    cr_free(b_to_clean[max_i]);
   }
 }
 
@@ -71,9 +71,8 @@ ParameterizedTestParameters(dl_body_in_list_ctx, test_getters) {
   /*   - value */
 
   dl_body *b, *b_next, *b_prev;
-  int i;
-
   dl_body **b_to_alloc[] = {&b, &b_next, &b_prev};
+  int i;
 
   for (i = 0; i < (int)(sizeof(b_to_alloc) / sizeof(dl_body *)); i++) {
     dl_body *b_local;
