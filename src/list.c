@@ -21,17 +21,23 @@
 
 #include "list.h"
 
-size_t l_count_new_size(int max_i, size_t size) {
+#ifndef UNITTESTS
+#define STATIC
+#else
+#define STATIC static
+#endif
+
+STATIC size_t l_count_new_size(int max_i, size_t size) {
 
   /* For init max_i=0 and default_size=1000, it goes sth like: */
-  /*	1000 -> 2500 -> 4750 -> 8125 -> 13187 -> 20780 */
+  /*	1000 -> 2500 -> 6250 -> 8125 -> 13187 -> 20780 */
 
   return (size_t)(3 * max_i / 2 + (int)size);
 }
 
-size_t l_get_pointer_size(void) { return sizeof(void *); }
+STATIC size_t l_get_pointer_size(void) { return sizeof(void *); }
 
-size_t l_count_new_size_with_pointer(int max_i, size_t size) {
+STATIC size_t l_count_new_size_with_pointer(int max_i, size_t size) {
   return l_count_new_size(max_i, size) * l_get_pointer_size();
 }
 
