@@ -54,32 +54,35 @@ ParameterizedTestParameters(dl_body_in_list_ctx, test_getters) {
   /*   - next */
   /*   - prev */
   /*   - value */
-  dl_body *ready_body, *next_body, *prev_body;
+  dl_body *b, *b_next, *p_body;
   int *value_p;
   int value = 5;
 
-  ready_body = (dl_body *)cr_malloc(sizeof(dl_body));
-  next_body = (dl_body *)cr_malloc(sizeof(dl_body));
-  prev_body = (dl_body *)cr_malloc(sizeof(dl_body));
+  b = (dl_body *)cr_malloc(sizeof(dl_body));
+  b_next = (dl_body *)cr_malloc(sizeof(dl_body));
+  p_body = (dl_body *)cr_malloc(sizeof(dl_body));
   value_p = (int *)cr_malloc(sizeof(int));
 
-  init_dl_body(ready_body, value_p);
-  init_dl_body(next_body, value_p);
-  init_dl_body(prev_body, value_p);
+  init_dl_body(b, value_p);
+  init_dl_body(b_next, value_p);
+  init_dl_body(p_body, value_p);
 
-  set_prev_dl_body(ready_body, prev_body);
-  set_next_dl_body(prev_body, ready_body);
+  set_prev_dl_body(b, p_body);
+  set_next_dl_body(p_body, b);
 
-  set_prev_dl_body(next_body, ready_body);
-  set_next_dl_body(ready_body, next_body);
+  set_prev_dl_body(b_next, b);
+  set_next_dl_body(b, b_next);
 
   *value_p = value;
 
-  return cr_make_param_array(dl_body, ready_body, 1);
+  return cr_make_param_array(dl_body, b, 1);
 }
 
 #include <criterion/new/assert.h>
-ParameterizedTest(dl_body *val, dl_body_in_list_ctx, test_getters) {
+ParameterizedTest(dl_body *b, dl_body_in_list_ctx, test_getters) {
+  dl_body *b_next, b_prev;
+  int value = 5;
+
   /* cr_fatal("Parameter: %p", val->value); */
-  cr_fatal("Parameter: %i", *(int *)val->value);
+  cr_fatal("Parameter: %i", *(int *)b->value);
 }
