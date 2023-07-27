@@ -1,8 +1,8 @@
-double_linked_list.o: src/double_linked_list.c
-	gcc -c src/double_linked_list.c -o double_linked_list.o
+list.o: src/list.c
+	gcc -c src/list.c -o list.o
 
-test_init_dl_list.o: tests/test_init_dl_list.c
-	gcc -c tests/test_init_dl_list.c -o test_init_dl_list.o 
+test_list.o: tests/test_list.c
+	gcc -c tests/test_list.c -o test_list.o 
 
-test: double_linked_list.o test_init_dl_list.o
-	gcc double_linked_list.o test_init_dl_list.o -l criterion -o test
+test: list.o test_list.o
+	gcc list.o test_list.o -l criterion -o test
