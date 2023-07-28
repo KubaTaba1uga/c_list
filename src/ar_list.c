@@ -1,5 +1,6 @@
 /* Array list implementation, as described here: */
 /*   https://en.wikipedia.org/wiki/Dynamic_array   */
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -29,10 +30,29 @@ void *arl_get(ar_list *l, size_t i) {
   /* Return NULL on failure. */
 
   // Validate index
-  if ((i > (l->size)) || (i < 0))
+  if (arl_is_i_invalid(l, i))
     return NULL;
 
   return l->array[i];
+}
+
+void *arl_set(ar_list *l, size_t i, void *value) {
+  /* Set value under the index. */
+  /* Index has to be smaller than l.size. */
+  /* Do not expand array size. */
+  /* Return value on success. */
+  /* Return NULL on failure. */
+
+  // Validate index
+  if (i < 0)
+    return NULL;
+
+  if (i > l->size)
+    return NULL;
+
+  l->array[i] = value;
+
+  return value;
 }
 
 /* void *arl_append(ar_list *l, void *value) { */
@@ -58,4 +78,9 @@ static size_t arl_count_new_capacity(size_t size, size_t capacity) {
 static size_t arl_count_new_capacity_base(size_t size, size_t capacity) {
   /* List's growth ratio. */
   return (size_t)(3 * size / 2 + capacity);
+}
+
+static bool arl_is_i_invalid(ar_list *l, size_t i) {
+  /* Return true if i is not in l->array boundaries. */
+  return ((i > (l->size)) || (i < 0));
 }

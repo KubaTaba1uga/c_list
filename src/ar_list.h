@@ -20,3 +20,4 @@ extern void *arl_get(ar_list *l, size_t i);
 static void *arl_init_array(ar_list *l, size_t default_size);
 static size_t arl_count_new_capacity(size_t size, size_t capacity);
 static size_t arl_count_new_capacity_base(size_t size, size_t capacity);
+static bool arl_is_i_invalid(ar_list *l, size_t i);
