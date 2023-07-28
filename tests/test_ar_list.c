@@ -70,13 +70,24 @@ Test(ready_list, test_arl_get_success) {
   ready_l.size = size;
   // end list prep
 
-  i = *(int *)arl_get(&ready_l, 0);
+  void *p;
+
+  p = arl_get(&ready_l, 0);
+  cr_assert_not_null(p);
+
+  i = *(int *)p;
   cr_assert(eq(int, i, 6));
 
-  i = *(int *)arl_get(&ready_l, 1);
+  p = arl_get(&ready_l, 1);
+  cr_assert_not_null(p);
+
+  i = *(int *)p;
   cr_assert(eq(int, i, 99));
 
-  i = *(int *)arl_get(&ready_l, 2);
+  p = arl_get(&ready_l, 2);
+  cr_assert_not_null(p);
+
+  i = *(int *)p;
   cr_assert(eq(int, i, 699));
 }
 
