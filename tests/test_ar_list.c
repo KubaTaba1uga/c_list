@@ -13,21 +13,21 @@
 // Do not forget adding `-zmuldefs` to gcc.
 #include "../src/ar_list.c"
 
-ar_list ready_l;
+ar_list l;
 
 Test(empty, test_arl_init_success) {
-  ar_list l;
-  size_t ds = 255;
+  size_t default_capacity = 255;
 
-  arl_init(&l, ds);
+  arl_init(&l, default_capacity);
 
   cr_expect_not_null(l.array);
-  cr_expect(l.size == 0, "Expected \"l.length\" to have a value of 0.");
-  cr_expect(l.capacity == 255, "Expected \"l.size\" to have a value of 255.");
+  cr_assert(eq(ulong, (unsigned long int)l.size, (unsigned long int)0));
+  cr_assert(eq(ulong, (unsigned long int)l.capacity, (unsigned long int)255));
 }
 
 Test(empty, test_arl_count_new_capacity_base_doc) {
   /* Purpose of this function is mainly documentational. */
+  /* Show array growth ratio by example. */
   size_t size = 0;
   size_t capacity = 1000;
 
@@ -52,65 +52,65 @@ Test(empty, test_arl_count_new_capacity_base_doc) {
   cr_assert(eq(ulong, (unsigned long int)capacity, (unsigned long int)15625));
 }
 
-void setup_suite(void) { arl_init(&ready_l, 1000); }
+void initiate_arl_1000(void) { arl_init(&l, 1000); }
 
-void teardown_suite(void) { free(ready_l.array); }
+void free_l(void) { free(l.array); }
 
-TestSuite(ready_list, .init = setup_suite, .fini = teardown_suite);
+TestSuite(arl_1000, .init = initiate_arl_1000, .fini = free_l);
 
-Test(ready_list, test_arl_get_success) {
-  // start list prep
+Test(arl_1000, test_arl_get_success) {
+  void *value;
+  int i;
+
   int expected_values[] = {6, 99, 699};
   size_t size = sizeof(expected_values) / sizeof(int);
 
-  int i;
   for (i = 0; (size_t)i < size; i++) {
-    ready_l.array[i] = &expected_values[i];
+    l.array[i] = &expected_values[i];
   }
-  ready_l.size = size;
-  // end list prep
+  l.size = size;
 
-  void *p;
-
-  p = arl_get(&ready_l, 0);
-  cr_assert_not_null(p);
-
-  i = *(int *)p;
-  cr_assert(eq(int, i, 6));
-
-  p = arl_get(&ready_l, 1);
-  cr_assert_not_null(p);
-
-  i = *(int *)p;
-  cr_assert(eq(int, i, 99));
-
-  p = arl_get(&ready_l, 2);
-  cr_assert_not_null(p);
-
-  i = *(int *)p;
-  cr_assert(eq(int, i, 699));
+  for (i = 0; (size_t)i < size; i++) {
+    value = arl_get(&l, i);
+    cr_assert_not_null(value);
+  }
 }
 
-Test(ready_list, test_arl_get_failure) {
+Test(arl_1000, test_arl_get_failure) {
   void *value;
 
-  value = arl_get(&ready_l, 0);
+  value = arl_get(&l, 5);
   cr_expect_null(value);
 
-  value = arl_get(&ready_l, -5);
+  value = arl_get(&l, -5);
   cr_expect_null(value);
+}
 
-  // start list prep
-  int expected_values[] = {1, 2, 3, 4, 5};
-  size_t size = sizeof(expected_values) / sizeof(int);
-
+Test(arl_1000, test_arl_set_success) {
+  void *value;
   int i;
-  for (i = 0; (size_t)i < size; i++) {
-    ready_l.array[i] = &expected_values[i];
-  }
-  ready_l.size = size;
-  // end list prep
 
-  value = arl_get(&ready_l, size + 1);
-  cr_expect_null(value);
+  int expected_values[] = {1, 2, 3, 4, 5};
+  size_t values_size = sizeof(expected_values) / sizeof(int);
+
+  l.size = values_size;
+  for (i = 0; (size_t)i < values_size; i++) {
+    value = arl_set(&l, i, &expected_values[i]);
+    cr_assert_not_null(value);
+  }
+
+  for (i = 0; (size_t)i < values_size; i++) {
+    cr_assert(eq(int, *(int *)(l.array[i]), expected_values[i]));
+  }
+}
+
+Test(arl_1000, test_arl_set_failures) {
+  void *value;
+  int i = 3;
+
+  value = arl_set(&l, 5, &i);
+  cr_assert_null(value);
+
+  value = arl_set(&l, -5, &i);
+  cr_assert_null(value);
 }
