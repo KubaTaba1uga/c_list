@@ -1,5 +1,6 @@
 /* Array list implementation, as described here: */
 /*   https://en.wikipedia.org/wiki/Dynamic_array   */
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "ar_list.h"
@@ -9,7 +10,7 @@ void *arl_init(ar_list *l, size_t default_capacity) {
   /* `default_capacity` tells maximum amount of pointers
    *     which list can store until realloc. */
   /*  `default_capacity` is parametrized for flexibility. */
-  /* User is responsible for knowing the data. */
+  /*  Which makes User responsible for knowing the data. */
 
   void *arl_array = arl_init_array(l, default_capacity);
 
@@ -23,16 +24,38 @@ void *arl_init(ar_list *l, size_t default_capacity) {
   return l;
 }
 
+void *arl_get(ar_list *l, size_t i) {
+  /* Get value under the index. */
+  /* Return NULL on failure. */
+
+  // Validate index
+  if ((i > (l->size)) || (i < 0))
+    return NULL;
+
+  return l->array[i];
+}
+
+/* void *arl_append(ar_list *l, void *value) { */
+/*   /\* Insert value to the last possible index. *\/ */
+/*   /\* If no enough capacity, realloc array. *\/ */
+/* } */
+
+/* void *arl_insert(ar_list *l, size_t i, void *value) { */
+/*   /\* Insert value to the index. *\/ */
+/*   /\* Return NULL on failure. *\/ */
+/*   /\* If no enough capacity, realloc array. *\/ */
+/* } */
+
 static void *arl_init_array(ar_list *l, size_t default_capacity) {
   /* return NULL if not enough memory. */
   return malloc(arl_count_new_capacity(0, default_capacity));
 }
 
-static size_t arl_count_new_capacity(int max_i, size_t size) {
-  return arl_count_new_capacity_base(max_i, size) * get_pointer_size();
+static size_t arl_count_new_capacity(size_t size, size_t capacity) {
+  return arl_count_new_capacity_base(size, capacity) * get_pointer_size();
 }
 
-static size_t arl_count_new_capacity_base(int max_i, size_t size) {
+static size_t arl_count_new_capacity_base(size_t size, size_t capacity) {
   /* List's growth ratio. */
-  return (size_t)(3 * max_i / 2 + (int)size);
+  return (size_t)(3 * size / 2 + capacity);
 }
