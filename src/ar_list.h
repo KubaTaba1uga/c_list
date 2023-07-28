@@ -32,7 +32,7 @@ typedef struct {
   /*   body can hold. */
   /* Useful when write to the list. */
   size_t size;
-} list;
+} ar_list;
 
-extern void *l_init_body(list *l, size_t default_size);
-extern void *l_init_list(list *l, size_t default_size);
+extern void *arl_init(ar_list *l, size_t default_size);
+extern void *arl_init_body(ar_list *l, size_t default_size);
