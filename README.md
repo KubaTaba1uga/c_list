@@ -2,7 +2,12 @@
 
 c_list is a library containing one data structure: list.
 
-Purpose of the project is educational. I want to learn how C external libs are being built, installed and used.
+Purpose of the project is educational. I want to learn how C external libs are being built, installed and used. <br>
+Besides Is there a better way to have fun with pointers, than custom data structures? I haven't found it ;)
+
+Ideas for lists implementation are taken from [wikipedia](https://en.wikipedia.org/wiki/List_of_data_structures#Lists). <br>
+![image](https://github.com/KubaTaba1uga/c_list/assets/73971628/354cd4b4-d488-498d-955e-7b3f81dbffc4)
+
 
 For tests I use [criterion](https://github.com/Snaipe/Criterion).
 For build I use gcc and make.
