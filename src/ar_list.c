@@ -29,7 +29,6 @@ void *arl_get(ar_list *l, size_t i) {
   /* Get value under the index. */
   /* Return NULL on failure. */
 
-  // Validate index
   if (arl_is_i_invalid(l, i))
     return NULL;
 
@@ -39,15 +38,11 @@ void *arl_get(ar_list *l, size_t i) {
 void *arl_set(ar_list *l, size_t i, void *value) {
   /* Set value under the index. */
   /* Index has to be smaller than l.size. */
-  /* Do not expand array size. */
+  /* Do not expand array. */
   /* Return value on success. */
   /* Return NULL on failure. */
 
-  // Validate index
-  if (i < 0)
-    return NULL;
-
-  if (i > l->size)
+  if (arl_is_i_invalid(l, i))
     return NULL;
 
   l->array[i] = value;
@@ -84,3 +79,7 @@ static bool arl_is_i_invalid(ar_list *l, size_t i) {
   /* Return true if i is not in l->array boundaries. */
   return ((i > (l->size)) || (i < 0));
 }
+
+static void *arl_grow_array_capacity(ar_list *l) {
+  return realloc(l, arl_count_new_capacity(l->size, l->capacity));
+};
