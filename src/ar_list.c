@@ -94,8 +94,7 @@ static size_t arl_count_new_capacity_base(size_t size, size_t capacity) {
 
 static bool arl_is_i_invalid(ar_list *l, size_t i) {
   /* Return true if i is not in l->array boundaries. */
-  /* Do not allow negative indexes. */
-  return ((i >= (l->size)) || (i == 0));
+  return i >= (l->size);
 }
 
 static void *arl_grow_array_capacity(ar_list *l) {
@@ -106,8 +105,8 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
                                                  size_t move_by) {
   /* Move elements further by `move_by`, starting from `start_i`. */
   /* Ex: */
-  /*    INPUT  l.array {1, 2,3, , ,}, start_i 1, move_by 2 */
-  /*    OUTPUT l.array {1, 2,3,2,3} */
+  /*    INPUT  l.array {0, 1, 2, , ,}, start_i 1, move_by 2 */
+  /*    OUTPUT l.array {0, 1, 2, 1, 2} */
   void *p;
   size_t i, old_size = l->size, new_size = l->size + move_by;
 
@@ -116,14 +115,12 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
 
   l->size = new_size;
 
-  for (i = new_size; i > start_i; i--) {
+  for (i = new_size - 1; i > start_i; i--) {
     p = arl_get(l, i - move_by);
-    printf("i:%lu, i-move_by:%lu %lu\n", i, i - move_by, l->size);
     if (!p)
       goto CLEANUP;
 
     p = arl_set(l, i, p);
-    printf("i:%lu, i-move_by:%lu %lu\n", i, i - move_by, l->size);
     if (!p)
       goto CLEANUP;
   }
