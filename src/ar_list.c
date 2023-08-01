@@ -94,7 +94,8 @@ static size_t arl_count_new_capacity_base(size_t size, size_t capacity) {
 
 static bool arl_is_i_invalid(ar_list *l, size_t i) {
   /* Return true if i is not in l->array boundaries. */
-  return ((i > (l->size)) || (i < 0));
+  /* Do not allow negative indexes. */
+  return ((i >= (l->size)) || (i == 0));
 }
 
 static void *arl_grow_array_capacity(ar_list *l) {
@@ -117,12 +118,12 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
 
   for (i = new_size; i > start_i; i--) {
     p = arl_get(l, i - move_by);
-    printf("i:%i, i-move_by:%i %i\n", i, i - move_by, l->size);
+    printf("i:%lu, i-move_by:%lu %lu\n", i, i - move_by, l->size);
     if (!p)
       goto CLEANUP;
 
     p = arl_set(l, i, p);
-    printf("i:%i, i-move_by:%i %i\n", i, i - move_by, l->size);
+    printf("i:%lu, i-move_by:%lu %lu\n", i, i - move_by, l->size);
     if (!p)
       goto CLEANUP;
   }
@@ -131,6 +132,5 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
 
 CLEANUP:
   l->size = old_size;
-RETURN_ERROR:
   return NULL;
 }
