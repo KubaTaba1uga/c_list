@@ -23,3 +23,5 @@ static size_t arl_count_new_capacity(size_t size, size_t capacity);
 static size_t arl_count_new_capacity_base(size_t size, size_t capacity);
 static bool arl_is_i_invalid(ar_list *l, size_t i);
 static void *arl_grow_array_capacity(ar_list *l);
+static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
+                                                 size_t move_by);
