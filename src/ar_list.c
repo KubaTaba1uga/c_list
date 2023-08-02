@@ -106,21 +106,30 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
   /* Move elements further by `move_by`, starting from `start_i`. */
   /* Ex: */
   /*    INPUT  l.array {0, 1, 2, , ,}, start_i 1, move_by 2 */
-  /*    OUTPUT l.array {0, 1, 2, 1, 2} */
+  /*    OUTPUT l.array {0, NULL, NULL, 1, 2} */
   void *p;
-  size_t i, old_size = l->size, new_size = l->size + move_by;
+  size_t i, move_by_i, old_size = l->size, new_size = l->size + move_by;
 
   if (new_size > l->capacity)
     return NULL;
 
   l->size = new_size;
 
+  puts("START");
+
   for (i = new_size - 1; i > start_i; i--) {
-    p = arl_get(l, i - move_by);
+    printf("Move by i: %i\n\n", i);
+
+    move_by_i = i - move_by;
+    p = arl_get(l, move_by_i);
     if (!p)
       goto CLEANUP;
 
     p = arl_set(l, i, p);
+    if (!p)
+      goto CLEANUP;
+
+    p = arl_set(l, move_by_i, NULL);
     if (!p)
       goto CLEANUP;
   }
