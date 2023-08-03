@@ -107,37 +107,49 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
   /* Ex: */
   /*    INPUT  l.array {0, 1, 2, , ,}, start_i 1, move_by 2 */
   /*    OUTPUT l.array {0, NULL, NULL, 1, 2} */
+
+  /* Function modifies array in place.  */
+  /* TO-DO */
+  /* more robust validation, before loop */
+  /* Solution: modify copy of array */
+
   void *p;
-  size_t i, move_by_i, old_size = l->size, new_size = l->size + move_by;
+  signed long int elements_to_move_no;
+  size_t i, old_size, new_size, i_source, i_dest;
+  old_size = l->size, new_size = l->size + move_by;
+  elements_to_move_no = old_size - start_i;
+
+  printf("Elements to move amount: %i\n", elements_to_move_no);
 
   if (new_size > l->capacity)
+    return NULL;
+  if (elements_to_move_no < 0)
     return NULL;
 
   l->size = new_size;
 
-  // make last item from len
+  // make last element from length
   new_size--;
-  // do not overwrite
-  start_i++;
-  puts("START");
 
-  for (i = new_size; i > start_i; i--) {
+  for (i = elements_to_move_no; i > 0; i--) {
 
-    move_by_i = i - move_by;
-    p = arl_get(l, move_by_i);
+    i_source = (start_i + i) - 1;
+    i_dest = i_source + move_by;
+
+    p = arl_get(l, i_source);
     if (!p)
       goto CLEANUP;
 
-    printf("array[%lu] = array[%lu] = %i, \n\n", i, move_by_i, *(int *)p);
+    printf("array[%lu] = array[%lu] = %p, \n\n", i_dest, i_source, p);
 
-    p = arl_set(l, i, p);
+    p = arl_set(l, i_dest, p);
     if (!p)
       goto CLEANUP;
 
-    arl_set(l, move_by_i, NULL);
+    arl_set(l, i_source, NULL);
   }
 
-  return l->array[i];
+  return l->array;
 
 CLEANUP:
   l->size = old_size;

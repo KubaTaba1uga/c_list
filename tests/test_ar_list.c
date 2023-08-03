@@ -345,9 +345,11 @@ Test(arl_full_array, test_arl_move_indexes_by_positive_number_failure) {
   cr_expect_null(received_value);
 }
 
-Test(arl_half_array, test_arl_move_indexes_by_positive_number_success) {
-  int expected_values[] = {0, 1, 1};
-  size_t i, start = 1, move_by = 2;
+Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_0) {
+  size_t null_indexes[] = {1};
+  size_t not_null_indexes[] = {0, 2, 3};
+  size_t i, start = 1, move_by = 1;
+  size_t expected_size = l.size + move_by;
   void *p;
 
   print_array(arl_5_size, l.array);
@@ -360,9 +362,140 @@ Test(arl_half_array, test_arl_move_indexes_by_positive_number_success) {
 
   cr_assert_not_null(p);
 
-  for (i = 0; i < sizeof(expected_values) / sizeof(int); i++) {
-    p = arl_get(&l, i);
-    cr_assert_not_null(p);
-    cr_assert(eq(int, *(int *)p, expected_values[i]));
+  for (i = 0; i < sizeof(null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, null_indexes[i]);
+    cr_assert_null(p);
   }
+
+  for (i = 0; i < sizeof(not_null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, not_null_indexes[i]);
+    cr_assert_not_null(p);
+  }
+
+  cr_assert(
+      eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
+}
+
+Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_1) {
+  size_t null_indexes[] = {2};
+  size_t not_null_indexes[] = {0, 1, 3};
+  size_t i, start = 2, move_by = 1;
+  size_t expected_size = l.size + move_by;
+  void *p;
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  p = arl_move_indexes_by_positive_number(&l, start, move_by);
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  cr_assert_not_null(p);
+
+  for (i = 0; i < sizeof(null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, null_indexes[i]);
+    cr_assert_null(p);
+  }
+
+  for (i = 0; i < sizeof(not_null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, not_null_indexes[i]);
+    cr_assert_not_null(p);
+  }
+
+  cr_assert(
+      eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
+}
+
+Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_2) {
+  size_t null_indexes[] = {1, 2};
+  size_t not_null_indexes[] = {0, 3, 4};
+  size_t i, start = 1, move_by = 2;
+  size_t expected_size = l.size + move_by;
+  void *p;
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  p = arl_move_indexes_by_positive_number(&l, start, move_by);
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  cr_assert_not_null(p);
+
+  for (i = 0; i < sizeof(null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, null_indexes[i]);
+    cr_assert_null(p);
+  }
+
+  for (i = 0; i < sizeof(not_null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, not_null_indexes[i]);
+    cr_assert_not_null(p);
+  }
+
+  cr_assert(
+      eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
+}
+
+Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_3) {
+  size_t null_indexes[] = {2};
+  size_t not_null_indexes[] = {0, 1, 4};
+  size_t i, start = 2, move_by = 2;
+  size_t expected_size = l.size + move_by;
+  void *p;
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  p = arl_move_indexes_by_positive_number(&l, start, move_by);
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  cr_assert_not_null(p);
+
+  for (i = 0; i < sizeof(null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, null_indexes[i]);
+    cr_assert_null(p);
+  }
+
+  for (i = 0; i < sizeof(not_null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, not_null_indexes[i]);
+    cr_assert_not_null(p);
+  }
+
+  cr_assert(
+      eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
+}
+
+Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_4) {
+  size_t null_indexes[] = {1, 2, 3};
+  size_t not_null_indexes[] = {0, 4, 5};
+  size_t i, start = 1, move_by = 3;
+  size_t expected_size = l.size + move_by;
+  void *p;
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  p = arl_move_indexes_by_positive_number(&l, start, move_by);
+
+  print_array(arl_5_size, l.array);
+  print_size_and_capacity(l.size, l.capacity);
+
+  cr_assert_not_null(p);
+
+  for (i = 0; i < sizeof(null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, null_indexes[i]);
+    cr_assert_null(p);
+  }
+
+  for (i = 0; i < sizeof(not_null_indexes) / sizeof(size_t); i++) {
+    p = arl_get(&l, not_null_indexes[i]);
+    cr_assert_not_null(p);
+  }
+
+  cr_assert(
+      eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
 }
