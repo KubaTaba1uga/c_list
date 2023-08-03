@@ -517,3 +517,19 @@ Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_6) {
   cr_assert(
       eq(ulong, (unsigned long int)l.size, (unsigned long int)expected_size));
 }
+
+Test(arl_half_array, test_arl_grow_array_capacity_success) {
+  void *p, *src_arr;
+  size_t expected_capacity = 80;
+
+  src_arr = l.array;
+
+  p = arl_grow_array_capacity(&l);
+  cr_assert_not_null(p);
+
+  cr_assert(eq(ulong, (unsigned long int)l.capacity,
+               (unsigned long int)expected_capacity));
+
+  cr_expect(src_arr != l.array,
+            "%p shoudl be different than %p, after realloc.", src_arr, l.array);
+}

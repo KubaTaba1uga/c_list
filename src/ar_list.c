@@ -51,7 +51,7 @@ void *arl_set(ar_list *l, size_t i, void *value) {
 
   l->array[i] = value;
 
-  return value;
+  return l->array[i];
 }
 
 /* void *arl_append(ar_list *l, void *value) { */
@@ -64,15 +64,26 @@ void *arl_set(ar_list *l, size_t i, void *value) {
 /*     arl_grow_array_capacity(l); */
 /* } */
 
-/* void *arl_insert(ar_list *l, size_t i, void *value) { */
-/*   /\* Insert value to the index. *\/ */
-/*   /\* Return NULL on failure. *\/ */
-/*   /\* If no enough capacity, realloc array. *\/ */
-/*   size_t j; */
+void *arl_insert(ar_list *l, size_t i, void *value) {
+  /* Insert value to the index. */
+  /* Return NULL on failure. */
+  /* If no enough capacity, realloc array. */
+  void *p;
+  size_t j;
 
-/*   if (arl_is_i_invalid(l, l->size + 1)) */
-/*     arl_grow_array_capacity(l); */
-/* } */
+  if (arl_is_i_invalid(l, i))
+    arl_grow_array_capacity(l);
+
+  p = arl_move_indexes_by_positive_number(l, i, 1);
+  if (!p)
+    return NULL;
+
+  p = arl_set(l, i, value);
+  if (!p)
+    return NULL;
+
+  return p;
+}
 
 // SHRINK IS ONLY IN POP
 // IF SIZE < CAPACITY / 3
@@ -98,7 +109,17 @@ static bool arl_is_i_invalid(ar_list *l, size_t i) {
 }
 
 static void *arl_grow_array_capacity(ar_list *l) {
-  return realloc(l->array, arl_count_new_capacity(l->size, l->capacity));
+  void *p;
+  size_t new_capacity = arl_count_new_capacity(l->size, l->capacity);
+
+  p = realloc(l->array, new_capacity);
+
+  if (p) {
+    l->capacity = new_capacity;
+    l->array = p;
+  }
+
+  return p;
 };
 
 static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
@@ -116,7 +137,8 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
   old_size = l->size, new_size = l->size + move_by;
   elements_to_move_no = old_size - start_i;
 
-  // set errno on validation
+  // TO-DO
+  // set errno on validation error
   if (new_size > l->capacity)
     return NULL;
   if (elements_to_move_no <= 0)
@@ -143,6 +165,9 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
 
   return l->array;
 
+  // this should never be triggered by design
+  // TO-DO
+  // cleaning up half moved array, revert org
 CLEANUP:
   l->size = old_size;
   return NULL;
