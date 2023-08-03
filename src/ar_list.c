@@ -115,23 +115,26 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
 
   l->size = new_size;
 
+  // make last item from len
+  new_size--;
+  // do not overwrite
+  start_i++;
   puts("START");
 
-  for (i = new_size - 1; i > start_i; i--) {
-    printf("Move by i: %i\n\n", i);
+  for (i = new_size; i > start_i; i--) {
 
     move_by_i = i - move_by;
     p = arl_get(l, move_by_i);
     if (!p)
       goto CLEANUP;
 
+    printf("array[%lu] = array[%lu] = %i, \n\n", i, move_by_i, *(int *)p);
+
     p = arl_set(l, i, p);
     if (!p)
       goto CLEANUP;
 
-    p = arl_set(l, move_by_i, NULL);
-    if (!p)
-      goto CLEANUP;
+    arl_set(l, move_by_i, NULL);
   }
 
   return l->array[i];
