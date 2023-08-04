@@ -1,8 +1,11 @@
-double_linked_list.o: src/double_linked_list.c
-	gcc -c src/double_linked_list.c -o double_linked_list.o
+utils.o:  src/utils/memory.c src/utils/memory.h
+	gcc -Wall -c src/utils/memory.c -o utils.o
 
-test_init_dl_list.o: tests/test_init_dl_list.c
-	gcc -c tests/test_init_dl_list.c -o test_init_dl_list.o 
+ar_list.o: src/ar_list.c src/ar_list.h
+	gcc -Wall -c src/ar_list.c -o ar_list.o
 
-test: double_linked_list.o test_init_dl_list.o
-	gcc double_linked_list.o test_init_dl_list.o -l criterion -o test
+test_ar_list.o: tests/test_ar_list.c src/ar_list.c src/ar_list.h
+	gcc -Wall -c tests/test_ar_list.c -o test_ar_list.o 
+
+test: ar_list.o test_ar_list.o utils.o
+	gcc -Wall -zmuldefs ar_list.o test_ar_list.o utils.o -l criterion -o test
