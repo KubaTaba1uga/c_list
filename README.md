@@ -6,7 +6,7 @@ Types of lists implemented:
 
 Purpose of the project is educational. I want to learn how C external libs are being built, installed and used.
 
-For tests I use [criterion](https://github.com/Snaipe/Criterion).
+For tests I use [cmocka](https://cmocka.org/).
 For build I use gcc and make.
 
 

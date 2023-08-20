@@ -69,7 +69,6 @@ void *arl_insert(ar_list *l, size_t i, void *value) {
   /* Return NULL on failure. */
   /* If no enough capacity, realloc array. */
   void *p;
-  size_t j;
 
   if (arl_is_i_invalid(l, i))
     arl_grow_array_capacity(l);
