@@ -8,4 +8,4 @@ test_ar_list.o: tests/test_ar_list.c src/ar_list.c src/ar_list.h
 	gcc -Wall -c tests/test_ar_list.c -o test_ar_list.o 
 
 test: ar_list.o test_ar_list.o utils.o
-	gcc -Wl,--wrap=malloc -Wall -z muldefs ar_list.o test_ar_list.o utils.o -l cmocka -o test
+	gcc -g -Wl,--wrap=_test_malloc -Wall -z muldefs ar_list.o test_ar_list.o utils.o -l cmocka -o test

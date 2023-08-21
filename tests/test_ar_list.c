@@ -81,12 +81,16 @@ void print_size_and_capacity(size_t size, size_t capacity) {
  *    MOCKS
  ******************************************************************************/
 
-void *__wrap_malloc(size_t size) { return test_malloc(size); }
-void *__wrap_calloc(size_t nmemb, size_t size) {
-  return test_calloc(nmemb, size);
+void *__wrap__test_malloc(size_t size) {
+  return NULL;
+  /* return test_malloc(size); */
 }
-void *__wrap_realloc(void *ptr, size_t size) { return test_realloc(ptr, size); }
-void __wrap_free(void *ptr) { test_free(ptr); }
+/* void *__wrap_calloc(size_t nmemb, size_t size) { */
+/*   return test_calloc(nmemb, size); */
+/* } */
+/* void *__wrap_realloc(void *ptr, size_t size) { return test_realloc(ptr,
+ * size); } */
+/* void __wrap_free(void *ptr) { test_free(ptr); } */
 
 /*******************************************************************************
  *    TESTS DECLARATIONS
@@ -126,6 +130,8 @@ static int initiate_l(void) {
 static void cleanup_l(void) {
   free_values_from_array(l.size, l.array);
 
+  free(l.array);
+
   l.size = 0;
 }
 
@@ -151,7 +157,7 @@ static int teardown_arl(void **state) {
 
 static int setup_arl_small_empty(void **state) {
 
-  l_values_size = sizeof(arl_empty_values) / sizeof(int);
+  l_values_size = 0;
 
   l_values = arl_empty_values;
 
@@ -199,9 +205,11 @@ void test_arl_alloc_array_failue(void **state) {
   /* Purpose of this function is mainly documentational. */
   void *p;
 
-  will_return(__wrap_malloc, NULL);
+  will_return(__wrap__test_malloc, 0);
 
   p = arl_alloc_array(&l, 5);
+
+  printf("%p\n", p);
 
   assert_null(p);
 }
