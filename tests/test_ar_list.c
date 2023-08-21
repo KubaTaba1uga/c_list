@@ -203,25 +203,19 @@ void test_arl_is_i_invalid_true(void **state) {
     }
   }
 }
+void test_arl_is_i_invalid_false(void **state) {
+  size_t j, i_to_check[] = {0, l_values_size / 2, l_values_size - 1};
+  bool is_invalid;
 
-/* Test(arl_full_array, test_arl_is_i_invalid_true) { */
+  for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) {
+    is_invalid = arl_is_i_invalid(&l, i_to_check[j]);
 
-/*   size_t j, i_to_check[] = {l_values_size + 1, ULONG_MAX}; */
-/*   bool received, expected = true; */
-
-/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
-/*     received = arl_is_i_invalid(&l, i_to_check[j]); */
-
-/*     cr_expect(received == expected, */
-/*               "arl_is_i_invalid(&l, %lu) = %s" */
-/*               "\n" */
-/*               "l.array={%lu,%lu,%lu,%lu,%lu}" */
-/*               "\n", */
-/*               i_to_check[j], "false", *(int *)l.array[0], *(int *)l.array[1],
- */
-/*               *(int *)l.array[2], *(int *)l.array[3], *(int *)l.array[4]); */
-/*   } */
-/* } */
+    if (is_invalid) {
+      print_array_pointers(l.size, l.array);
+      fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "true");
+    }
+  }
+}
 
 /* TO-DO */
 /* parametrized expected values */
@@ -330,43 +324,6 @@ void test_arl_is_i_invalid_true(void **state) {
 
 /* /\* STATIC FUNCTIONS' TESTS *\/ */
 
-/* Test(arl_full_array, test_arl_is_i_invalid_false) { */
-/*   size_t j, i_to_check[] = {0, 2, 4}; */
-/*   bool received, expected = false; */
-
-/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
-/*     received = arl_is_i_invalid(&l, i_to_check[j]); */
-
-/*     cr_expect(received == expected, */
-/*               "arl_is_i_invalid(&l, %lu) = %s" */
-/*               "\n" */
-/*               "l.array={%lu,%lu,%lu,%lu,%lu}" */
-/*               "\n", */
-/*               i_to_check[j], "true", *(int *)l.array[0], *(int *)l.array[1],
- */
-/*               *(int *)l.array[2], *(int *)l.array[3], *(int *)l.array[4]); */
-/*   } */
-/* } */
-
-/* Test(arl_full_array, test_arl_is_i_invalid_true) { */
-
-/*   size_t j, i_to_check[] = {l_values_size + 1, ULONG_MAX}; */
-/*   bool received, expected = true; */
-
-/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
-/*     received = arl_is_i_invalid(&l, i_to_check[j]); */
-
-/*     cr_expect(received == expected, */
-/*               "arl_is_i_invalid(&l, %lu) = %s" */
-/*               "\n" */
-/*               "l.array={%lu,%lu,%lu,%lu,%lu}" */
-/*               "\n", */
-/*               i_to_check[j], "false", *(int *)l.array[0], *(int *)l.array[1],
- */
-/*               *(int *)l.array[2], *(int *)l.array[3], *(int *)l.array[4]); */
-/*   } */
-/* } */
-
 /* Test(arl_full_array, */
 /*      test_arl_move_indexes_by_positive_number_failure_capacity) { */
 /*   // cannot set over size */
@@ -381,7 +338,8 @@ void test_arl_is_i_invalid_true(void **state) {
 /* } */
 
 /* Test(arl_half_array, */
-/*      test_arl_move_indexes_by_positive_number_failure_elements_to_move) { */
+/*      test_arl_move_indexes_by_positive_number_failure_elements_to_move) {
+ */
 /*   void *received_value; */
 
 /*   size_t start = l.size + 1, move_by = 0; */
@@ -392,7 +350,8 @@ void test_arl_is_i_invalid_true(void **state) {
 /*   cr_expect_null(received_value); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_0) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_0) {
+ */
 /*   size_t null_indexes[] = {1}; */
 /*   size_t not_null_indexes[] = {0, 2, 3}; */
 /*   size_t i, start = 1, move_by = 1; */
@@ -418,7 +377,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_1) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_1) {
+ */
 /*   size_t null_indexes[] = {2}; */
 /*   size_t not_null_indexes[] = {0, 1, 3}; */
 /*   size_t i, start = 2, move_by = 1; */
@@ -444,7 +404,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_2) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_2) {
+ */
 /*   size_t null_indexes[] = {1, 2}; */
 /*   size_t not_null_indexes[] = {0, 3, 4}; */
 /*   size_t i, start = 1, move_by = 2; */
@@ -470,7 +431,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_3) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_3) {
+ */
 /*   size_t null_indexes[] = {2}; */
 /*   size_t not_null_indexes[] = {0, 1, 4}; */
 /*   size_t i, start = 2, move_by = 2; */
@@ -496,7 +458,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_4) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_4) {
+ */
 /*   size_t null_indexes[] = {1, 2, 3}; */
 /*   size_t not_null_indexes[] = {0, 4, 5}; */
 /*   size_t i, start = 1, move_by = 3; */
@@ -522,7 +485,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_5) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_5) {
+ */
 /*   size_t null_indexes[] = {2, 3, 4}; */
 /*   size_t not_null_indexes[] = {0, 1, 5}; */
 /*   size_t i, start = 2, move_by = 3; */
@@ -548,7 +512,8 @@ void test_arl_is_i_invalid_true(void **state) {
  * int)expected_size)); */
 /* } */
 
-/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_6) { */
+/* Test(arl_half_array, test_arl_move_indexes_by_positive_number_success_6) {
+ */
 /*   size_t null_indexes[] = {0, 1, 2}; */
 /*   size_t not_null_indexes[] = {3, 4, 5}; */
 /*   size_t i, start = 0, move_by = 3; */
@@ -597,10 +562,13 @@ int main(void) {
       cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
                                       setup_arl_small_empty, teardown_arl),
       cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
+                                      setup_arl_small_full, teardown_arl),
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false,
                                       setup_arl_small_full, teardown_arl)
 
       /* teardown_arl_small_empty)}; */
   };
+
   const struct CMUnitTest public_tests[] = {
       cmocka_unit_test(test_arl_init_success),
       cmocka_unit_test_setup_teardown(test_arl_get_success,
