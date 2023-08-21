@@ -112,22 +112,21 @@ int arl_empty_values[] = {};
 
 /*******************************************************************************
  *    FIXTURES
- *****************************************
- *************************************/
+ ******************************************************************************/
 
-static int initiate_l(void) {
+static int initiate_l(size_t size, size_t capacity, void *values) {
   void *p;
   size_t i;
 
-  p = arl_init(&l, l_values_size);
+  p = arl_init(&l, capacity);
   if (!p)
     return 1;
 
-  i = write_values_to_array(l_values_size, l.array, l_values);
-  if (i != l_values_size)
+  i = write_values_to_array(size, l.array, values);
+  if (i != size)
     return 2;
 
-  l.size = l_values_size;
+  l.size = size;
 
   return 0;
 }
@@ -139,19 +138,49 @@ static void cleanup_l(void) {
 
   l.size = 0;
 }
+static void cleanup_l_alloc(void) {
+
+  free(l.array);
+
+  l.size = 0;
+}
 
 /*******************************************************************************
  *    SETUP, TEARDOWN
  ******************************************************************************/
 
 static int setup_arl_small_full(void **state) {
-  will_return_maybe(__wrap__test_malloc, true);
+  will_return_always(__wrap__test_malloc, true);
 
   l_values_size = sizeof(arl_small_values) / sizeof(int);
 
   l_values = arl_small_values;
 
-  initiate_l();
+  initiate_l(l_values_size, l_values_size, l_values);
+
+  return 0;
+}
+
+static int setup_arl_small_empty(void **state) {
+  will_return_maybe(__wrap__test_malloc, true);
+
+  l_values_size = sizeof(arl_small_values) / sizeof(int);
+
+  l_values = arl_empty_values;
+
+  initiate_l(0, l_values_size, l_values);
+
+  return 0;
+}
+
+static int setup_arl_small_half(void **state) {
+  will_return_always(__wrap__test_malloc, true);
+
+  l_values_size = (sizeof(arl_small_values) / sizeof(int)) / 2;
+
+  l_values = arl_small_values;
+
+  initiate_l(l_values_size, l_values_size, l_values);
 
   return 0;
 }
@@ -162,14 +191,8 @@ static int teardown_arl(void **state) {
   return 0;
 }
 
-static int setup_arl_small_empty(void **state) {
-  will_return_maybe(__wrap__test_malloc, true);
-
-  l_values_size = 0;
-
-  l_values = arl_empty_values;
-
-  initiate_l();
+static int teardown_arl_empty(void **state) {
+  cleanup_l();
 
   return 0;
 }
@@ -206,7 +229,7 @@ void test_arl_get_success(void **state) {
 }
 
 /*******************************************************************************
- *    INTERNAL API TESTS
+ *    PRIVATE API TESTS
  ******************************************************************************/
 
 void test_arl_alloc_array_failue(void **state) {
@@ -220,7 +243,7 @@ void test_arl_alloc_array_failue(void **state) {
   assert_null(p);
 }
 
-void test_arl_count_new_capacity_base_doc(void **state) {
+void test_arl_count_new_capacity_base(void **state) {
   /* Show array capacity growth ratio by example. */
   /* Purpose of this function is mainly documentational. */
 
@@ -261,6 +284,29 @@ void test_arl_is_i_invalid_false(void **state) {
       print_array_pointers(l.size, l.array);
       fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "true");
     }
+  }
+}
+
+void test_arl_grow_array_capacity_success(void **state) {
+  size_t capacity_cp;
+  void *received;
+
+  capacity_cp = l.capacity;
+
+  print_size_and_capacity(l.size, l.capacity);
+  print_array_pointers(l.size, l.array);
+
+  received = arl_grow_array_capacity(&l);
+
+  assert_non_null(received);
+
+  print_size_and_capacity(l.size, l.capacity);
+  print_array_pointers(l.size, l.array);
+
+  if (capacity_cp >= l.capacity) {
+    print_size_and_capacity(l.size, l.capacity);
+    print_array_pointers(l.size, l.array);
+    fail_msg("%li >= %li is True", capacity_cp, l.capacity);
   }
 }
 
@@ -607,16 +653,29 @@ int main(void) {
   /* Alias functions so tests reports are easier to read. */
 #define test_arl_is_i_invalid_true_empty test_arl_is_i_invalid_true
 #define test_arl_is_i_invalid_true_full test_arl_is_i_invalid_true
+#define test_arl_is_i_invalid_true_half test_arl_is_i_invalid_true
+#define test_arl_is_i_invalid_false_full test_arl_is_i_invalid_false
+#define test_arl_is_i_invalid_false_half test_arl_is_i_invalid_false
+#define test_arl_grow_array_capacity_success_empty arl_grow_array_capacity
+#define test_arl_grow_array_capacity_success_full arl_grow_array_capacity
+#define test_arl_grow_array_capacity_success_half arl_grow_array_capacity
 
-  const struct CMUnitTest internal_tests[] = {
+  const struct CMUnitTest private_tests[] = {
       cmocka_unit_test(test_arl_alloc_array_failue),
-      cmocka_unit_test(test_arl_count_new_capacity_base_doc),
+      cmocka_unit_test(test_arl_count_new_capacity_base),
       cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty,
                                       setup_arl_small_empty, teardown_arl),
       cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_full,
                                       setup_arl_small_full, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false,
-                                      setup_arl_small_full, teardown_arl)
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_half,
+                                      setup_arl_small_half, teardown_arl),
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_full,
+                                      setup_arl_small_full, teardown_arl),
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_half,
+                                      setup_arl_small_half, teardown_arl),
+      cmocka_unit_test_setup_teardown(
+          test_arl_grow_array_capacity_success_empty, setup_arl_small_empty,
+          teardown_arl_empty),
 
   };
 
@@ -627,7 +686,7 @@ int main(void) {
 
   };
 
-  cmocka_run_group_tests(internal_tests, NULL, NULL);
+  cmocka_run_group_tests(private_tests, NULL, NULL);
 
   cmocka_run_group_tests(public_tests, NULL, NULL);
 

@@ -1,12 +1,24 @@
 /* Array list implementation, as described here: */
 /*   https://en.wikipedia.org/wiki/Dynamic_array   */
+
+/*******************************************************************************
+ *    IMPORTS
+ ******************************************************************************/
+// C standard library
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+// External
+
+// App
 #include "ar_list.h"
 #include "utils/memory.h"
+
+/*******************************************************************************
+ *    PUBLIC API
+ ******************************************************************************/
 
 /* TO-DO */
 /* 1. set up errno on failure */
@@ -84,6 +96,10 @@ void *arl_insert(ar_list *l, size_t i, void *value) {
   return p;
 }
 
+/*******************************************************************************
+ *    PRIVATE API
+ ******************************************************************************/
+
 // SHRINK IS ONLY IN POP
 // IF SIZE < CAPACITY / 3
 //     CAPACITY = CAPACITY / 2
@@ -111,12 +127,17 @@ static void *arl_grow_array_capacity(ar_list *l) {
   void *p;
   size_t new_capacity = arl_count_new_capacity(l->size, l->capacity);
 
+  printf("P:%p\n", l->array);
+
   p = realloc(l->array, new_capacity);
 
   if (p) {
     l->capacity = new_capacity;
     l->array = p;
   }
+
+  printf("P:%p\n", l->array);
+  printf("P:%p\n", p);
 
   return p;
 };
@@ -130,24 +151,24 @@ static void *arl_move_indexes_by_positive_number(ar_list *l, size_t start_i,
   /*    OUTPUT l.array {0, NULL, NULL, 1, 2} */
 
   void *p;
-  signed long int elements_to_move_no;
+  signed long int elements_to_move_amount;
   size_t i, old_size, new_size, i_source, i_dest;
 
   old_size = l->size, new_size = l->size + move_by;
-  elements_to_move_no = old_size - start_i;
+  elements_to_move_amount = old_size - start_i;
 
   // TO-DO
-  // set errno on validation error
+  // set erramount on validation error
   if (new_size > l->capacity)
     return NULL;
-  if (elements_to_move_no <= 0)
+  if (elements_to_move_amount == 0)
     return NULL;
 
   l->size = new_size;
 
   start_i--;
 
-  for (i = elements_to_move_no; i > 0; i--) {
+  for (i = elements_to_move_amount; i > 0; i--) {
     i_source = start_i + i;
     i_dest = i_source + move_by;
 
