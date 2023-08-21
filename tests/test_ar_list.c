@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Test framework dependencies  */
 #include <setjmp.h>
@@ -53,29 +54,29 @@ ar_list l;
 
 // TO-DO: make only arl_value sand arl_size/arl_len
 // setup functions are responsible for setting l, arl_values, arl_size
-int *arl_small_values;
-size_t arl_small_size;
+int *l_values;
+size_t l_values_size;
 
 /*******************************************************************************
- *    PRIVATE FUNCTIONS
+ *    FIXTURES
  ******************************************************************************/
 
-static void initiate_arl_small_fullfilled(void) {
+static void initiate_l(void) {
   void *p;
   size_t i;
 
-  p = arl_init(&l, arl_small_size);
+  p = arl_init(&l, l_values_size);
   if (!p)
     exit(1);
 
-  i = write_values_to_array(arl_small_size, l.array, arl_small_values);
-  if (i != arl_small_size)
+  i = write_values_to_array(l_values_size, l.array, l_values);
+  if (i != l_values_size)
     exit(2);
 
-  l.size = i;
+  l.size = l_values_size;
 }
 
-static void cleanup_arl_small_fullfilled(void) {
+static void cleanup_l(void) {
   size_t i;
   for (i = l.size; i < l.size; i++) {
     free(l.array[i]);
@@ -89,25 +90,26 @@ static void cleanup_arl_small_fullfilled(void) {
  ******************************************************************************/
 
 static int SetupArlSmallFull(void **state) {
-  int i, values[] = {0, 1, 2, 3, 4, 5};
+  int values[] = {0, 1, 2, 3, 4, 5};
+  void *p;
 
-  arl_small_values = malloc(sizeof(values));
-  if (!arl_small_values)
+  l_values = malloc(sizeof(values));
+  if (!l_values)
     exit(3);
 
-  arl_small_size = sizeof(values) / sizeof(int);
+  l_values_size = sizeof(values) / sizeof(int);
 
-  for (i = 0; i < arl_small_size; i++) {
-    arl_small_values[i] = values[i];
-  }
+  p = memcpy(l_values, values, l_values_size);
+  if (!p)
+    exit(4);
 
-  initiate_arl_small_fullfilled();
+  initiate_l();
 
   return 0;
 }
 
 static int TeardownArlSmallFull(void **state) {
-  cleanup_arl_small_fullfilled();
+  cleanup_l();
 
   return 0;
 }
@@ -130,8 +132,8 @@ void test_arl_init_success(void **state) {
 /* /\* mock test_arl_init_failure, malloc *\/ */
 
 void test_arl_get_success(void **state) {
-  int *expected_values = arl_small_values;
-  size_t i, values_size = arl_small_size;
+  int *expected_values = l_values;
+  size_t i, values_size = l_values_size;
   void *p;
 
   assert_int_equal(l.capacity, values_size);
@@ -180,21 +182,21 @@ void test_arl_get_success(void **state) {
 /* } */
 
 /* /\* FIXTURES *\/ */
-/* int arl_small_values[] = {0, 1, 2, 3, 4, 5}; */
-/* size_t arl_small_size = sizeof(arl_small_values) / sizeof(int); */
+/* int l_values[] = {0, 1, 2, 3, 4, 5}; */
+/* size_t l_values_size = sizeof(l_values) / sizeof(int); */
 /* size_t arl_small_half_size = 3; */
 
-/* void initiate_arl_small(void) { arl_init(&l, arl_small_size); } */
+/* void initiate_arl_small(void) { arl_init(&l, l_values_size); } */
 /* void initiate_arl_small_fullfilled(void) { */
 /*   void *p; */
 /*   size_t i; */
 
-/*   p = arl_init(&l, arl_small_size); */
+/*   p = arl_init(&l, l_values_size); */
 /*   if (!p) */
 /*     exit(1); */
 
-/*   i = write_values_to_array(arl_small_size, l.array, arl_small_values); */
-/*   if (i != arl_small_size) */
+/*   i = write_values_to_array(l_values_size, l.array, l_values); */
+/*   if (i != l_values_size) */
 /*     exit(2); */
 
 /*   l.size = i; */
@@ -203,11 +205,11 @@ void test_arl_get_success(void **state) {
 /*   void *p; */
 /*   size_t i; */
 
-/*   p = arl_init(&l, arl_small_size); */
+/*   p = arl_init(&l, l_values_size); */
 /*   if (!p) */
 /*     exit(1); */
 
-/*   i = write_values_to_array(arl_small_half_size, l.array, arl_small_values);
+/*   i = write_values_to_array(arl_small_half_size, l.array, l_values);
  */
 /*   if (i != arl_small_half_size) */
 /*     exit(2); */
@@ -248,8 +250,8 @@ void test_arl_get_success(void **state) {
 /* /\* mock test_arl_init_failure, malloc *\/ */
 
 /* Test(arl_full_array, test_arl_get_success) { */
-/*   int *expected_values = arl_small_values; */
-/*   size_t i, values_size = arl_small_size; */
+/*   int *expected_values = l_values; */
+/*   size_t i, values_size = l_values_size; */
 /*   void *p; */
 
 /*   cr_assert( */
@@ -264,7 +266,7 @@ void test_arl_get_success(void **state) {
 /* } */
 
 /* Test(arl_half_array, test_arl_get_success) { */
-/*   int *expected_values = arl_small_values; */
+/*   int *expected_values = l_values; */
 /*   size_t i, values_size = arl_small_half_size; */
 /*   void *p; */
 
@@ -335,7 +337,7 @@ void test_arl_get_success(void **state) {
 
 /* Test(arl_full_array, test_arl_is_i_invalid_true) { */
 
-/*   size_t j, i_to_check[] = {arl_small_size + 1, ULONG_MAX}; */
+/*   size_t j, i_to_check[] = {l_values_size + 1, ULONG_MAX}; */
 /*   bool received, expected = true; */
 
 /*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
