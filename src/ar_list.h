@@ -18,7 +18,7 @@ extern void *arl_init(ar_list *l, size_t default_size);
 extern void *arl_get(ar_list *l, size_t i);
 extern void *arl_set(ar_list *l, size_t i, void *value);
 
-static void *arl_init_array(ar_list *l, size_t default_size);
+static void *arl_alloc_array(ar_list *l, size_t default_size);
 static size_t arl_count_new_capacity(size_t size, size_t capacity);
 static size_t arl_count_new_capacity_base(size_t size, size_t capacity);
 static bool arl_is_i_invalid(ar_list *l, size_t i);

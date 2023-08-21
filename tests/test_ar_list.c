@@ -3,7 +3,6 @@
  ******************************************************************************/
 #include <limits.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +11,10 @@
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-/* Test framework */
+#include <stdint.h>
+/* Replace malloc/realloc/free with cmocka alternatives. */
+#define UNIT_TESTING 1
+/* Test framework itself */
 #include <cmocka.h>
 
 // including source file instead of header file allows
@@ -41,6 +43,17 @@ size_t write_values_to_array(size_t size, void *array[], int values[]) {
   }
   return i;
 }
+size_t free_values_from_array(size_t size, void *array[size]) {
+  /* Array and values has to be at least the same size. */
+  /* Return number of elements written to array. */
+
+  size_t i;
+
+  for (i = 0; i < size; i++) {
+    free(array[i]);
+  }
+  return i;
+}
 
 void print_array_pointers(size_t size, void *array[size]) {
   size_t i;
@@ -63,6 +76,17 @@ void print_array_values(size_t size, void *array[size]) {
 void print_size_and_capacity(size_t size, size_t capacity) {
   printf("Size: %lu, Capacity: %lu\n", size, capacity);
 }
+
+/*******************************************************************************
+ *    MOCKS
+ ******************************************************************************/
+
+void *__wrap_malloc(size_t size) { return test_malloc(size); }
+void *__wrap_calloc(size_t nmemb, size_t size) {
+  return test_calloc(nmemb, size);
+}
+void *__wrap_realloc(void *ptr, size_t size) { return test_realloc(ptr, size); }
+void __wrap_free(void *ptr) { test_free(ptr); }
 
 /*******************************************************************************
  *    TESTS DECLARATIONS
@@ -100,10 +124,7 @@ static int initiate_l(void) {
 }
 
 static void cleanup_l(void) {
-  size_t i;
-  for (i = l.size; i < l.size; i++) {
-    free(l.array[i]);
-  }
+  free_values_from_array(l.size, l.array);
 
   l.size = 0;
 }
@@ -174,6 +195,17 @@ void test_arl_get_success(void **state) {
  *    INTERNAL API TESTS
  ******************************************************************************/
 
+void test_arl_alloc_array_failue(void **state) {
+  /* Purpose of this function is mainly documentational. */
+  void *p;
+
+  will_return(__wrap_malloc, NULL);
+
+  p = arl_alloc_array(&l, 5);
+
+  assert_null(p);
+}
+
 void test_arl_count_new_capacity_base_doc(void **state) {
   /* Show array capacity growth ratio by example. */
   /* Purpose of this function is mainly documentational. */
@@ -203,6 +235,7 @@ void test_arl_is_i_invalid_true(void **state) {
     }
   }
 }
+
 void test_arl_is_i_invalid_false(void **state) {
   size_t j, i_to_check[] = {0, l_values_size / 2, l_values_size - 1};
   bool is_invalid;
@@ -556,17 +589,20 @@ void test_arl_is_i_invalid_false(void **state) {
 /* } */
 
 int main(void) {
+/* Alias functions so tests reports are easier to read. */
+#define test_arl_is_i_invalid_true_empty test_arl_is_i_invalid_true
+#define test_arl_is_i_invalid_true_full test_arl_is_i_invalid_true
 
   const struct CMUnitTest internal_tests[] = {
+      cmocka_unit_test(test_arl_alloc_array_failue),
       cmocka_unit_test(test_arl_count_new_capacity_base_doc),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty,
                                       setup_arl_small_empty, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_full,
                                       setup_arl_small_full, teardown_arl),
       cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false,
                                       setup_arl_small_full, teardown_arl)
 
-      /* teardown_arl_small_empty)}; */
   };
 
   const struct CMUnitTest public_tests[] = {

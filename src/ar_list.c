@@ -17,7 +17,7 @@ void *arl_init(ar_list *l, size_t default_capacity) {
   /*  `default_capacity` is parametrized for flexibility. */
   /*  Which makes User responsible for knowing the data. */
 
-  void *arl_array = arl_init_array(l, default_capacity);
+  void *arl_array = arl_alloc_array(l, default_capacity);
 
   if (!arl_array)
     return NULL;
@@ -88,7 +88,7 @@ void *arl_insert(ar_list *l, size_t i, void *value) {
 // IF SIZE < CAPACITY / 3
 //     CAPACITY = CAPACITY / 2
 
-static void *arl_init_array(ar_list *l, size_t default_capacity) {
+static void *arl_alloc_array(ar_list *l, size_t default_capacity) {
   /* return NULL if not enough memory. */
   return malloc(arl_count_new_capacity(0, default_capacity));
 }
