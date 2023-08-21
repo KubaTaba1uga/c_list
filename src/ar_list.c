@@ -127,7 +127,8 @@ static void *arl_grow_array_capacity(ar_list *l) {
   void *p;
   size_t new_capacity = arl_count_new_capacity(l->size, l->capacity);
 
-  printf("P:%p\n", l->array);
+  printf("0:%p\n", l->array);
+  printf("%li\n", new_capacity);
 
   p = realloc(l->array, new_capacity);
 
@@ -136,8 +137,8 @@ static void *arl_grow_array_capacity(ar_list *l) {
     l->array = p;
   }
 
-  printf("P:%p\n", l->array);
-  printf("P:%p\n", p);
+  printf("1:%p\n", l->array);
+  printf("2:%p\n", p);
 
   return p;
 };

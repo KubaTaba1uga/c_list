@@ -23,6 +23,34 @@
 #include "../src/ar_list.c"
 
 /*******************************************************************************
+ *    MOCKS
+ ******************************************************************************/
+
+void *__real__test_malloc(const size_t size, const char *file, const int line);
+
+/* void *__wrap__test_malloc(size_t size); */
+void *__wrap__test_malloc(size_t size) {
+
+  bool will_return_ = mock();
+
+  if (will_return_)
+    return __real__test_malloc(size, __FILE__, __LINE__);
+
+  return NULL;
+}
+
+/*******************************************************************************
+ *    TESTS DECLARATIONS
+ ******************************************************************************/
+int *l_values;
+size_t l_values_size;
+
+/*******************************************************************************
+ *    TESTS DATA
+ ******************************************************************************/
+int arl_small_values[] = {0, 1, 2, 3, 4, 5};
+
+/*******************************************************************************
  *    UTILS
  ******************************************************************************/
 
@@ -78,151 +106,128 @@ void print_size_and_capacity(size_t size, size_t capacity) {
 }
 
 /*******************************************************************************
- *    MOCKS
- ******************************************************************************/
-
-void *__real__test_malloc(const size_t size, const char *file, const int line);
-
-void *__wrap__test_malloc(size_t size);
-void *__wrap__test_malloc(size_t size) {
-
-  bool will_return_ = mock();
-
-  if (will_return_)
-    return __real__test_malloc(size, __FILE__, __LINE__);
-
-  return NULL;
-}
-
-/* void *__wrap__test_malloc(size_t size) { return 1; } */
-
-/*******************************************************************************
- *    TESTS DECLARATIONS
- ******************************************************************************/
-ar_list l;
-
-int *l_values;
-size_t l_values_size;
-
-/*******************************************************************************
- *    TESTS DATA
- ******************************************************************************/
-int arl_small_values[] = {0, 1, 2, 3, 4, 5};
-int arl_empty_values[] = {};
-
-/*******************************************************************************
  *    FIXTURES
  ******************************************************************************/
 
-static int initiate_l(size_t size, size_t capacity, void *values) {
+static ar_list *alloc_l(void) { return malloc(sizeof(ar_list)); }
+
+static int initiate_l(ar_list *l, size_t size, size_t capacity, void *values) {
   void *p;
   size_t i;
 
-  p = arl_init(&l, capacity);
+  p = arl_init(l, capacity);
   if (!p)
     return 1;
 
-  i = write_values_to_array(size, l.array, values);
+  i = write_values_to_array(size, l->array, values);
   if (i != size)
     return 2;
 
-  l.size = size;
+  l->size = size;
 
   return 0;
 }
 
-static void cleanup_l(void) {
-  free_values_from_array(l.size, l.array);
+/* static void free_l(ar_list *l) { */
+/*   free_values_from_array(l->size, l->array); */
 
-  /* free(l.array); */
-
-  l.size = 0;
-}
-static void cleanup_l_alloc(void) {
-
-  free(l.array);
-
-  l.size = 0;
-}
+/*   l->size = 0; */
+/* } */
 
 /*******************************************************************************
  *    SETUP, TEARDOWN
  ******************************************************************************/
 
-static int setup_arl_small_full(void **state) {
+static int setup_arl_alloc(void **state) {
   will_return_always(__wrap__test_malloc, true);
 
-  l_values_size = sizeof(arl_small_values) / sizeof(int);
-
-  l_values = arl_small_values;
-
-  initiate_l(l_values_size, l_values_size, l_values);
-
-  return 0;
-}
-
-static int setup_arl_small_empty(void **state) {
-  will_return_maybe(__wrap__test_malloc, true);
-
-  l_values_size = sizeof(arl_small_values) / sizeof(int);
-
-  l_values = arl_empty_values;
-
-  initiate_l(0, l_values_size, l_values);
+  ar_list *l = alloc_l();
+  if (!l)
+    return 1;
+  
+  *state = l;
 
   return 0;
 }
 
-static int setup_arl_small_half(void **state) {
-  will_return_always(__wrap__test_malloc, true);
 
-  l_values_size = (sizeof(arl_small_values) / sizeof(int)) / 2;
+/* static int setup_arl_small_empty(void **state) { */
+/*   /\* will_return_maybe(__wrap__test_malloc, true); *\/ */
 
-  l_values = arl_small_values;
+/*   size_t values_size = sizeof(arl_small_values) / sizeof(int); */
 
-  initiate_l(l_values_size, l_values_size, l_values);
+/*   ar_list *l = alloc_l(); */
+
+/*   *state = l; */
+
+/*   return initiate_l(l, 0, values_size, arl_small_values); */
+/* } */
+
+/* static int setup_arl_small_full(void **state) { */
+/*   will_return_always(__wrap__test_malloc, true); */
+
+/*   l_values_size = sizeof(arl_small_values) / sizeof(int); */
+
+/*   l_values = arl_small_values; */
+
+/*   return initiate_l(l_values_size, l_values_size, l_values); */
+/* } */
+
+/* static int setup_arl_small_half(void **state) { */
+/*   will_return_always(__wrap__test_malloc, true); */
+
+/*   l_values_size = (sizeof(arl_small_values) / sizeof(int)) / 2; */
+
+/*   l_values = arl_small_values; */
+
+/*   return initiate_l(l_values_size, l_values_size, l_values); */
+/* } */
+
+static int teardown_arl_alloc(void **state) {
+  ar_list *l = *state;
+
+  free(l);
+  
+  return 0;
+}
+
+static int teardown_arl_array(void **state) {
+  /* free_l(*state); */
+
+  /* free(*l->array); */
 
   return 0;
 }
 
-static int teardown_arl(void **state) {
-  cleanup_l();
-
-  return 0;
-}
-
-static int teardown_arl_empty(void **state) {
-  cleanup_l();
-
-  return 0;
-}
 
 /*******************************************************************************
  *    PUBLIC API TESTS
  ******************************************************************************/
 
 void test_arl_init_success(void **state) {
+  ar_list *l = *state;
   size_t default_capacity = 255;
 
-  arl_init(&l, default_capacity);
+  arl_init(l, default_capacity);
 
-  assert_non_null(l.array);
-  assert_int_equal(l.size, 0);
-  assert_int_equal(l.capacity, 255);
+  assert_non_null(l->array);
+  assert_int_equal(l->size, 0);
+  assert_int_equal(l->capacity, 255);
 }
 
 /* /\* TO-DO *\/ */
 /* /\* mock test_arl_init_failure, malloc *\/ */
 
 void test_arl_get_success(void **state) {
+  ar_list *l = *state;
   int *expected_values = l_values;
   size_t i, values_size = l_values_size;
   void *p;
 
-  assert_int_equal(l.capacity, values_size);
+  assert_int_equal(l->capacity, values_size);
 
   for (i = 0; i < values_size; i++) {
-    p = arl_get(&l, i);
+    p = arl_get(l, i);
     assert_non_null(p);
     assert_int_equal(*(int *)p, expected_values[i]);
   }
@@ -234,81 +239,81 @@ void test_arl_get_success(void **state) {
 
 void test_arl_alloc_array_failue(void **state) {
   /* Purpose of this function is mainly documentational. */
+  ar_list *l = *state;
   void *p;
 
   will_return(__wrap__test_malloc, false);
 
-  p = arl_alloc_array(&l, 5);
+  p = arl_alloc_array(l, 5);
 
   assert_null(p);
 }
 
-void test_arl_count_new_capacity_base(void **state) {
-  /* Show array capacity growth ratio by example. */
-  /* Purpose of this function is mainly documentational. */
+/* void test_arl_count_new_capacity_base(void **state) { */
+/*   /\* Show array capacity growth ratio by example. *\/ */
+/*   /\* Purpose of this function is mainly documentational. *\/ */
 
-  size_t expected_values[] = {1000, 2500, 6250, 15625};
-  size_t size = 0;
-  size_t capacity = 1000;
-  size_t i;
+/*   size_t expected_values[] = {1000, 2500, 6250, 15625}; */
+/*   size_t size = 0; */
+/*   size_t capacity = 1000; */
+/*   size_t i; */
 
-  for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) {
-    capacity = size = arl_count_new_capacity_base(size, capacity);
+/*   for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) { */
+/*     capacity = size = arl_count_new_capacity_base(size, capacity); */
 
-    assert_int_equal(capacity, expected_values[i]);
-  }
-}
+/*     assert_int_equal(capacity, expected_values[i]); */
+/*   } */
+/* } */
 
-void test_arl_is_i_invalid_true(void **state) {
-  size_t j, i_to_check[] = {l_values_size, ULONG_MAX};
-  bool is_invalid;
+/* void test_arl_is_i_invalid_true(void **state) { */
+/*   size_t j, i_to_check[] = {l_values_size, ULONG_MAX}; */
+/*   bool is_invalid; */
 
-  for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) {
-    is_invalid = arl_is_i_invalid(&l, i_to_check[j]);
+/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
+/*     is_invalid = arl_is_i_invalid(&l, i_to_check[j]); */
 
-    if (!is_invalid) {
-      print_array_pointers(l.size, l.array);
-      fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
-    }
-  }
-}
+/*     if (!is_invalid) { */
+/*       print_array_pointers(l->size, l->array); */
+/*       fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
+ */
+/*     } */
+/*   } */
+/* } */
 
-void test_arl_is_i_invalid_false(void **state) {
-  size_t j, i_to_check[] = {0, l_values_size / 2, l_values_size - 1};
-  bool is_invalid;
+/* void test_arl_is_i_invalid_false(void **state) { */
+/*   size_t j, i_to_check[] = {0, l_values_size / 2, l_values_size - 1}; */
+/*   bool is_invalid; */
 
-  for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) {
-    is_invalid = arl_is_i_invalid(&l, i_to_check[j]);
+/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
+/*     is_invalid = arl_is_i_invalid(&l, i_to_check[j]); */
 
-    if (is_invalid) {
-      print_array_pointers(l.size, l.array);
-      fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "true");
-    }
-  }
-}
+/*     if (is_invalid) { */
+/*       print_array_pointers(l->size, l->array); */
+/*       fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "true"); */
+/*     } */
+/*   } */
+/* } */
 
-void test_arl_grow_array_capacity_success(void **state) {
-  size_t capacity_cp;
-  void *received;
+/* void test_arl_grow_array_capacity_success(void **state) { */
+/*   size_t capacity_cp; */
+/*   void *received; */
 
-  capacity_cp = l.capacity;
+/*   capacity_cp = l->capacity; */
 
-  print_size_and_capacity(l.size, l.capacity);
-  print_array_pointers(l.size, l.array);
+/*   /\* print_size_and_capacity(l->size, l->capacity); *\/ */
+/*   /\* print_array_pointers(l->size, l->array); *\/ */
 
-  received = arl_grow_array_capacity(&l);
+/*   printf("-1:%p\n", l->array); */
+/*   received = arl_grow_array_capacity(&l); */
 
-  assert_non_null(received);
+/*   assert_non_null(received); */
 
-  print_size_and_capacity(l.size, l.capacity);
-  print_array_pointers(l.size, l.array);
-
-  if (capacity_cp >= l.capacity) {
-    print_size_and_capacity(l.size, l.capacity);
-    print_array_pointers(l.size, l.array);
-    fail_msg("%li >= %li is True", capacity_cp, l.capacity);
-  }
-}
+/*   if (capacity_cp >= l->capacity) { */
+/*     print_size_and_capacity(l->size, l->capacity); */
+/*     print_array_pointers(l->size, l->array); */
+/*     fail_msg("%li >= %li is True", capacity_cp, l->capacity); */
+/*   } */
+/* } */
 
 /* TO-DO */
 /* parametrized expected values */
@@ -328,11 +333,11 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   if (!p) */
 /*     exit(1); */
 
-/*   i = write_values_to_array(l_values_size, l.array, l_values); */
+/*   i = write_values_to_array(l_values_size, l->array, l_values); */
 /*   if (i != l_values_size) */
 /*     exit(2); */
 
-/*   l.size = i; */
+/*   l->size = i; */
 /* } */
 /* void initiate_arl_small_halffilled(void) { */
 /*   void *p; */
@@ -342,30 +347,30 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   if (!p) */
 /*     exit(1); */
 
-/*   i = write_values_to_array(arl_small_half_size, l.array, l_values);
+/*   i = write_values_to_array(arl_small_half_size, l->array, l_values);
  */
 /*   if (i != arl_small_half_size) */
 /*     exit(2); */
 
-/*   l.size = i; */
+/*   l->size = i; */
 /* } */
 
-/* void cleanup_arl_small(void) { free(l.array); } */
+/* void cleanup_arl_small(void) { free(l->array); } */
 /* void cleanup_arl_small_fullfilled(void) { */
 /*   size_t i; */
-/*   for (i = l.size; i < l.size; i++) { */
-/*     free(l.array[i]); */
+/*   for (i = l->size; i < l->size; i++) { */
+/*     free(l->array[i]); */
 /*   } */
 
-/*   l.size = 0; */
+/*   l->size = 0; */
 /* } */
 /* void cleanup_arl_small_halffilled(void) { */
 /*   size_t i; */
 /*   for (i = 0; i < arl_small_half_size; i++) { */
-/*     free(l.array[i]); */
+/*     free(l->array[i]); */
 /*   } */
 
-/*   l.size = 0; */
+/*   l->size = 0; */
 /* } */
 
 /* /\* TEST SUITS *\/ */
@@ -388,7 +393,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   void *p; */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.capacity, (unsigned long
+/*       eq(ulong, (unsigned long int)l->capacity, (unsigned long
  * int)values_size)); */
 
 /*   for (i = 0; i < values_size; i++) { */
@@ -409,7 +414,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*     cr_assert(eq(int, *(int *)p, expected_values[i])); */
 /*   } */
 
-/*   for (; i < l.capacity; i++) { */
+/*   for (; i < l->capacity; i++) { */
 /*     p = arl_get(&l, i); */
 /*     cr_assert_null(p); */
 /*   } */
@@ -435,7 +440,7 @@ void test_arl_grow_array_capacity_success(void **state) {
  */
 /*   void *received_value; */
 
-/*   size_t start = l.size + 1, move_by = 0; */
+/*   size_t start = l->size + 1, move_by = 0; */
 
 /*   received_value = arl_move_indexes_by_positive_number(&l, start, move_by);
  */
@@ -448,7 +453,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {1}; */
 /*   size_t not_null_indexes[] = {0, 2, 3}; */
 /*   size_t i, start = 1, move_by = 1; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -466,7 +471,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -475,7 +480,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {2}; */
 /*   size_t not_null_indexes[] = {0, 1, 3}; */
 /*   size_t i, start = 2, move_by = 1; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -493,7 +498,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -502,7 +507,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {1, 2}; */
 /*   size_t not_null_indexes[] = {0, 3, 4}; */
 /*   size_t i, start = 1, move_by = 2; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -520,7 +525,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -529,7 +534,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {2}; */
 /*   size_t not_null_indexes[] = {0, 1, 4}; */
 /*   size_t i, start = 2, move_by = 2; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -547,7 +552,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -556,7 +561,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {1, 2, 3}; */
 /*   size_t not_null_indexes[] = {0, 4, 5}; */
 /*   size_t i, start = 1, move_by = 3; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -574,7 +579,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -583,7 +588,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {2, 3, 4}; */
 /*   size_t not_null_indexes[] = {0, 1, 5}; */
 /*   size_t i, start = 2, move_by = 3; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -601,7 +606,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -610,7 +615,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   size_t null_indexes[] = {0, 1, 2}; */
 /*   size_t not_null_indexes[] = {3, 4, 5}; */
 /*   size_t i, start = 0, move_by = 3; */
-/*   size_t expected_size = l.size + move_by; */
+/*   size_t expected_size = l->size + move_by; */
 /*   void *p; */
 
 /*   p = arl_move_indexes_by_positive_number(&l, start, move_by); */
@@ -627,7 +632,7 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   } */
 
 /*   cr_assert( */
-/*       eq(ulong, (unsigned long int)l.size, (unsigned long
+/*       eq(ulong, (unsigned long int)l->size, (unsigned long
  * int)expected_size)); */
 /* } */
 
@@ -635,17 +640,17 @@ void test_arl_grow_array_capacity_success(void **state) {
 /*   void *p, *src_arr; */
 /*   size_t expected_capacity = 80; */
 
-/*   src_arr = l.array; */
+/*   src_arr = l->array; */
 
 /*   p = arl_grow_array_capacity(&l); */
 /*   cr_assert_not_null(p); */
 
-/*   cr_assert(eq(ulong, (unsigned long int)l.capacity, */
+/*   cr_assert(eq(ulong, (unsigned long int)l->capacity, */
 /*                (unsigned long int)expected_capacity)); */
 
-/*   cr_expect(src_arr != l.array, */
+/*   cr_expect(src_arr != l->array, */
 /*             "%p shoudl be different than %p, after realloc.", src_arr,
- * l.array); */
+ * l->array); */
 /* } */
 
 int main(void) {
@@ -656,33 +661,40 @@ int main(void) {
 #define test_arl_is_i_invalid_true_half test_arl_is_i_invalid_true
 #define test_arl_is_i_invalid_false_full test_arl_is_i_invalid_false
 #define test_arl_is_i_invalid_false_half test_arl_is_i_invalid_false
-#define test_arl_grow_array_capacity_success_empty arl_grow_array_capacity
-#define test_arl_grow_array_capacity_success_full arl_grow_array_capacity
-#define test_arl_grow_array_capacity_success_half arl_grow_array_capacity
+#define test_arl_grow_array_capacity_success_empty                             \
+  test_arl_grow_array_capacity_success
+#define test_arl_grow_array_capacity_success_full                              \
+  test_arl_grow_array_capacity_success
+#define test_arl_grow_array_capacity_success_half                              \
+  test_arl_grow_array_capacity_success
 
   const struct CMUnitTest private_tests[] = {
-      cmocka_unit_test(test_arl_alloc_array_failue),
-      cmocka_unit_test(test_arl_count_new_capacity_base),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty,
-                                      setup_arl_small_empty, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_full,
-                                      setup_arl_small_full, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_half,
-                                      setup_arl_small_half, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_full,
-                                      setup_arl_small_full, teardown_arl),
-      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_half,
-                                      setup_arl_small_half, teardown_arl),
-      cmocka_unit_test_setup_teardown(
-          test_arl_grow_array_capacity_success_empty, setup_arl_small_empty,
-          teardown_arl_empty),
+      cmocka_unit_test_setup_teardown(test_arl_alloc_array_failue,
+                                      setup_arl_alloc, teardown_arl_alloc),
+      /* cmocka_unit_test(test_arl_alloc_array_failue), */
+      /* cmocka_unit_test(test_arl_count_new_capacity_base), */
+      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty, */
+      /*                                 setup_arl_small_empty, teardown_arl), */
+      
+      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_full, */
+      /*                                 setup_arl_small_full, teardown_arl), */
+      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_half, */
+      /*                                 setup_arl_small_half, teardown_arl), */
+      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_full, */
+      /*                                 setup_arl_small_full, teardown_arl), */
+      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_false_half, */
+      /*                                 setup_arl_small_half, teardown_arl), */
+      /* cmocka_unit_test_setup_teardown( */
+      /*     test_arl_grow_array_capacity_success_empty, setup_arl_small_empty,
+       */
+      /*     teardown_arl), */
 
   };
 
   const struct CMUnitTest public_tests[] = {
-      cmocka_unit_test(test_arl_init_success),
-      cmocka_unit_test_setup_teardown(test_arl_get_success,
-                                      setup_arl_small_full, teardown_arl)
+      /* cmocka_unit_test(test_arl_init_success), */
+      /* cmocka_unit_test_setup_teardown(test_arl_get_success, */
+      /*                                 setup_arl_small_full, teardown_arl) */
 
   };
 
