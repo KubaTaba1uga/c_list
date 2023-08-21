@@ -81,16 +81,20 @@ void print_size_and_capacity(size_t size, size_t capacity) {
  *    MOCKS
  ******************************************************************************/
 
+void *__real__test_malloc(const size_t size, const char *file, const int line);
+
+void *__wrap__test_malloc(size_t size);
 void *__wrap__test_malloc(size_t size) {
+
+  bool will_return_ = mock();
+
+  if (will_return_)
+    return __real__test_malloc(size, __FILE__, __LINE__);
+
   return NULL;
-  /* return test_malloc(size); */
 }
-/* void *__wrap_calloc(size_t nmemb, size_t size) { */
-/*   return test_calloc(nmemb, size); */
-/* } */
-/* void *__wrap_realloc(void *ptr, size_t size) { return test_realloc(ptr,
- * size); } */
-/* void __wrap_free(void *ptr) { test_free(ptr); } */
+
+/* void *__wrap__test_malloc(size_t size) { return 1; } */
 
 /*******************************************************************************
  *    TESTS DECLARATIONS
@@ -108,7 +112,8 @@ int arl_empty_values[] = {};
 
 /*******************************************************************************
  *    FIXTURES
- ******************************************************************************/
+ *****************************************
+ *************************************/
 
 static int initiate_l(void) {
   void *p;
@@ -130,7 +135,7 @@ static int initiate_l(void) {
 static void cleanup_l(void) {
   free_values_from_array(l.size, l.array);
 
-  free(l.array);
+  /* free(l.array); */
 
   l.size = 0;
 }
@@ -140,6 +145,8 @@ static void cleanup_l(void) {
  ******************************************************************************/
 
 static int setup_arl_small_full(void **state) {
+  will_return_maybe(__wrap__test_malloc, true);
+
   l_values_size = sizeof(arl_small_values) / sizeof(int);
 
   l_values = arl_small_values;
@@ -156,6 +163,7 @@ static int teardown_arl(void **state) {
 }
 
 static int setup_arl_small_empty(void **state) {
+  will_return_maybe(__wrap__test_malloc, true);
 
   l_values_size = 0;
 
@@ -205,11 +213,9 @@ void test_arl_alloc_array_failue(void **state) {
   /* Purpose of this function is mainly documentational. */
   void *p;
 
-  will_return(__wrap__test_malloc, 0);
+  will_return(__wrap__test_malloc, false);
 
   p = arl_alloc_array(&l, 5);
-
-  printf("%p\n", p);
 
   assert_null(p);
 }
@@ -597,7 +603,8 @@ void test_arl_is_i_invalid_false(void **state) {
 /* } */
 
 int main(void) {
-/* Alias functions so tests reports are easier to read. */
+
+  /* Alias functions so tests reports are easier to read. */
 #define test_arl_is_i_invalid_true_empty test_arl_is_i_invalid_true
 #define test_arl_is_i_invalid_true_full test_arl_is_i_invalid_true
 
