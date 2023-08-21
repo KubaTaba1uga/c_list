@@ -78,6 +78,7 @@ size_t free_values_from_array(size_t size, void *array[size]) {
   size_t i;
 
   for (i = 0; i < size; i++) {
+    printf("%li\n", i);
     free(array[i]);
   }
   return i;
@@ -139,29 +140,40 @@ static int initiate_l(ar_list *l, size_t size, size_t capacity, void *values) {
  ******************************************************************************/
 
 static int setup_arl_alloc(void **state) {
-  will_return_always(__wrap__test_malloc, true);
+  will_return_maybe(__wrap__test_malloc, true);
 
   ar_list *l = alloc_l();
   if (!l)
     return 1;
-  
+
   *state = l;
 
   return 0;
 }
 
+static int setup_arl_small_empty(void **state) {
+  will_return_maybe(__wrap__test_malloc, true);
 
-/* static int setup_arl_small_empty(void **state) { */
-/*   /\* will_return_maybe(__wrap__test_malloc, true); *\/ */
+  size_t values_size = sizeof(arl_small_values) / sizeof(int);
 
-/*   size_t values_size = sizeof(arl_small_values) / sizeof(int); */
+  ar_list *l = alloc_l();
+  if (!l)
+    return 1;
 
-/*   ar_list *l = alloc_l(); */
+  *state = l;
 
-/*   *state = l; */
+  return initiate_l(l, 0, values_size, &arl_small_values);
+}
 
-/*   return initiate_l(l, 0, values_size, arl_small_values); */
-/* } */
+static int teardown_arl_array(void **state) {
+  ar_list *l = *state;
+
+  free_values_from_array(l->size, l->array);
+
+  free(l);
+
+  return 0;
+}
 
 /* static int setup_arl_small_full(void **state) { */
 /*   will_return_always(__wrap__test_malloc, true); */
@@ -187,18 +199,9 @@ static int teardown_arl_alloc(void **state) {
   ar_list *l = *state;
 
   free(l);
-  
-  return 0;
-}
-
-static int teardown_arl_array(void **state) {
-  /* free_l(*state); */
-
-  /* free(*l->array); */
 
   return 0;
 }
-
 
 /*******************************************************************************
  *    PUBLIC API TESTS
@@ -249,36 +252,36 @@ void test_arl_alloc_array_failue(void **state) {
   assert_null(p);
 }
 
-/* void test_arl_count_new_capacity_base(void **state) { */
-/*   /\* Show array capacity growth ratio by example. *\/ */
-/*   /\* Purpose of this function is mainly documentational. *\/ */
+void test_arl_count_new_capacity_base(void **state) {
+  /* Show array capacity growth ratio by example. */
+  /* Purpose of this function is mainly documentational. */
 
-/*   size_t expected_values[] = {1000, 2500, 6250, 15625}; */
-/*   size_t size = 0; */
-/*   size_t capacity = 1000; */
-/*   size_t i; */
+  size_t expected_values[] = {1000, 2500, 6250, 15625};
+  size_t size = 0;
+  size_t capacity = 1000;
+  size_t i;
 
-/*   for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) { */
-/*     capacity = size = arl_count_new_capacity_base(size, capacity); */
+  for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) {
+    capacity = size = arl_count_new_capacity_base(size, capacity);
 
-/*     assert_int_equal(capacity, expected_values[i]); */
-/*   } */
-/* } */
+    assert_int_equal(capacity, expected_values[i]);
+  }
+}
 
-/* void test_arl_is_i_invalid_true(void **state) { */
-/*   size_t j, i_to_check[] = {l_values_size, ULONG_MAX}; */
-/*   bool is_invalid; */
+void test_arl_is_i_invalid_true(void **state) {
+  ar_list *l = *state;
+  size_t j, i_to_check[] = {l_values_size, ULONG_MAX};
+  bool is_invalid;
 
-/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
-/*     is_invalid = arl_is_i_invalid(&l, i_to_check[j]); */
+  for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) {
+    is_invalid = arl_is_i_invalid(l, i_to_check[j]);
 
-/*     if (!is_invalid) { */
-/*       print_array_pointers(l->size, l->array); */
-/*       fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
- */
-/*     } */
-/*   } */
-/* } */
+    if (!is_invalid) {
+      print_array_pointers(l->size, l->array);
+      fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
+    }
+  }
+}
 
 /* void test_arl_is_i_invalid_false(void **state) { */
 /*   size_t j, i_to_check[] = {0, l_values_size / 2, l_values_size - 1}; */
@@ -671,11 +674,12 @@ int main(void) {
   const struct CMUnitTest private_tests[] = {
       cmocka_unit_test_setup_teardown(test_arl_alloc_array_failue,
                                       setup_arl_alloc, teardown_arl_alloc),
-      /* cmocka_unit_test(test_arl_alloc_array_failue), */
-      /* cmocka_unit_test(test_arl_count_new_capacity_base), */
-      /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty, */
-      /*                                 setup_arl_small_empty, teardown_arl), */
-      
+      cmocka_unit_test(test_arl_count_new_capacity_base),
+
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_empty,
+                                      setup_arl_small_empty,
+                                      teardown_arl_array),
+
       /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_full, */
       /*                                 setup_arl_small_full, teardown_arl), */
       /* cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true_half, */
