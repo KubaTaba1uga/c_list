@@ -42,20 +42,32 @@ size_t write_values_to_array(size_t size, void *array[], int values[]) {
   return i;
 }
 
+void print_array(size_t size, void *array[size]) {
+  size_t i;
+  puts("{");
+  for (i = 0; i < size; i++) {
+    printf("%p,\n", array[i]);
+  }
+  puts("}");
+}
+
+void print_size_and_capacity(size_t size, size_t capacity) {
+  printf("Size: %lu, Capacity: %lu\n", size, capacity);
+}
+
+/*******************************************************************************
+ *    TESTS DECLARATIONS
+ ******************************************************************************/
+ar_list l;
+
+int *l_values;
+size_t l_values_size;
+
 /*******************************************************************************
  *    TESTS DATA
  ******************************************************************************/
-
-/*******************************************************************************
- *    PRIVATE DATA
- ******************************************************************************/
-
-ar_list l;
-
-// TO-DO: make only arl_value sand arl_size/arl_len
-// setup functions are responsible for setting l, arl_values, arl_size
-int *l_values;
-size_t l_values_size;
+int arl_small_values[] = {0, 1, 2, 3, 4, 5};
+int arl_empty_values[] = {};
 
 /*******************************************************************************
  *    FIXTURES
@@ -89,17 +101,17 @@ static void cleanup_l(void) {
  *    SETUP, TEARDOWN
  ******************************************************************************/
 
-static int SetupArlSmallFull(void **state) {
-  int values[] = {0, 1, 2, 3, 4, 5};
+static int setup_arl_small_full(void **state) {
+
   void *p;
 
-  l_values = malloc(sizeof(values));
+  l_values = malloc(sizeof(arl_small_values));
   if (!l_values)
     exit(3);
 
-  l_values_size = sizeof(values) / sizeof(int);
+  l_values_size = sizeof(arl_small_values) / sizeof(int);
 
-  p = memcpy(l_values, values, l_values_size);
+  p = memcpy(l_values, arl_small_values, l_values_size);
   if (!p)
     exit(4);
 
@@ -108,14 +120,33 @@ static int SetupArlSmallFull(void **state) {
   return 0;
 }
 
-static int TeardownArlSmallFull(void **state) {
+static int teardown_arl(void **state) {
   cleanup_l();
 
   return 0;
 }
 
+static int setup_arl_small_empty(void **state) {
+
+  void *p;
+
+  l_values = malloc(sizeof(arl_empty_values));
+  if (!l_values)
+    exit(5);
+
+  l_values_size = 0;
+
+  p = memcpy(l_values, arl_empty_values, l_values_size);
+  if (!p)
+    exit(6);
+
+  initiate_l();
+
+  return 0;
+}
+
 /*******************************************************************************
- *    TESTS
+ *    PUBLIC API TESTS
  ******************************************************************************/
 
 void test_arl_init_success(void **state) {
@@ -145,41 +176,62 @@ void test_arl_get_success(void **state) {
   }
 }
 
+/*******************************************************************************
+ *    INTERNAL API TESTS
+ ******************************************************************************/
+
+void test_arl_count_new_capacity_base_doc(void **state) {
+  /* Show array capacity growth ratio by example. */
+  /* Purpose of this function is mainly documentational. */
+
+  size_t expected_values[] = {1000, 2500, 6250, 15625};
+  size_t size = 0;
+  size_t capacity = 1000;
+  size_t i;
+
+  for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) {
+    capacity = size = arl_count_new_capacity_base(size, capacity);
+
+    assert_int_equal(capacity, expected_values[i]);
+  }
+}
+
+void test_arl_is_i_invalid_true(void **state) {
+  size_t j, i_to_check[] = {l_values_size, ULONG_MAX};
+  bool is_invalid;
+
+  for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) {
+    is_invalid = arl_is_i_invalid(&l, i_to_check[j]);
+
+    if (!is_invalid) {
+      print_array(l.size, l.array);
+      fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
+    }
+  }
+}
+
+/* Test(arl_full_array, test_arl_is_i_invalid_true) { */
+
+/*   size_t j, i_to_check[] = {l_values_size + 1, ULONG_MAX}; */
+/*   bool received, expected = true; */
+
+/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
+/*     received = arl_is_i_invalid(&l, i_to_check[j]); */
+
+/*     cr_expect(received == expected, */
+/*               "arl_is_i_invalid(&l, %lu) = %s" */
+/*               "\n" */
+/*               "l.array={%lu,%lu,%lu,%lu,%lu}" */
+/*               "\n", */
+/*               i_to_check[j], "false", *(int *)l.array[0], *(int *)l.array[1],
+ */
+/*               *(int *)l.array[2], *(int *)l.array[3], *(int *)l.array[4]); */
+/*   } */
+/* } */
+
 /* TO-DO */
 /* parametrized expected values */
 /* count dynamically expected values sign */
-
-/* UTILS */
-/* size_t write_values_to_array(size_t size, void *array[], int values[]) { */
-/*   /\* Array and values has to be at least the same size. *\/ */
-/*   /\* Return number of elements written to array. *\/ */
-
-/*   void *p; */
-/*   size_t i; */
-
-/*   for (i = 0; i < size; i++) { */
-/*     p = malloc(sizeof(int)); */
-/*     if (!p) */
-/*       continue; */
-
-/*     *(int *)p = values[i]; */
-/*     l.array[i] = p; */
-/*   } */
-/*   return i; */
-/* } */
-
-/* void print_array(size_t size, void *array[size]) { */
-/*   size_t i; */
-/*   puts("{"); */
-/*   for (i = 0; i < size; i++) { */
-/*     printf("%p,\n", array[i]); */
-/*   } */
-/*   puts("}"); */
-/* } */
-
-/* void print_size_and_capacity(size_t size, size_t capacity) { */
-/*   printf("Size: %lu, Capacity: %lu\n", size, capacity); */
-/* } */
 
 /* /\* FIXTURES *\/ */
 /* int l_values[] = {0, 1, 2, 3, 4, 5}; */
@@ -283,39 +335,6 @@ void test_arl_get_success(void **state) {
 /* } */
 
 /* /\* STATIC FUNCTIONS' TESTS *\/ */
-
-/* Test(arl_static, test_arl_count_new_capacity_base_doc) { */
-/*   /\* Purpose of this function is mainly documentational. *\/ */
-/*   /\* Show array capacity growth ratio by example. *\/ */
-
-/*   size_t expected_values[] = {1000, 2500, 6250, 15625}; */
-/*   size_t size = 0; */
-/*   size_t capacity = 1000; */
-/*   size_t i; */
-
-/*   for (i = 0; i < (sizeof(expected_values) / sizeof(size_t)); i++) { */
-/*     capacity = size = arl_count_new_capacity_base(size, capacity); */
-
-/*     cr_assert(eq(ulong, (unsigned long int)capacity, */
-/*                  (unsigned long int)expected_values[i])); */
-/*   } */
-/* } */
-
-/* Test(arl_empty_array, test_arl_is_i_invalid_true) { */
-/*   /\* Empty array is always invalid. *\/ */
-
-/*   size_t j, i_to_check[] = {0, 2, 4, ULONG_MAX}; */
-/*   bool received, expected = true; */
-
-/*   for (j = 0; j < (sizeof(i_to_check) / sizeof(size_t)); j++) { */
-/*     received = arl_is_i_invalid(&l, i_to_check[j]); */
-
-/*     cr_expect(received == expected, */
-/*               "arl_is_i_invalid(&l, %i) = %s\nl.array={,,,,}\n",
- * i_to_check[j], */
-/*               "false"); */
-/*   } */
-/* } */
 
 /* Test(arl_full_array, test_arl_is_i_invalid_false) { */
 /*   size_t j, i_to_check[] = {0, 2, 4}; */
@@ -579,17 +598,25 @@ void test_arl_get_success(void **state) {
 
 int main(void) {
 
-  const struct CMUnitTest tests[] = {
+  const struct CMUnitTest internal_tests[] = {
+      cmocka_unit_test(test_arl_count_new_capacity_base_doc),
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
+                                      setup_arl_small_empty, teardown_arl),
+      cmocka_unit_test_setup_teardown(test_arl_is_i_invalid_true,
+                                      setup_arl_small_full, teardown_arl)
+
+      /* teardown_arl_small_empty)}; */
+  };
+  const struct CMUnitTest public_tests[] = {
       cmocka_unit_test(test_arl_init_success),
+      cmocka_unit_test_setup_teardown(test_arl_get_success,
+                                      setup_arl_small_full, teardown_arl)
+
   };
 
-  const struct CMUnitTest arl_small_full_tests[] = {
-      cmocka_unit_test(test_arl_get_success),
-  };
+  cmocka_run_group_tests(internal_tests, NULL, NULL);
 
-  cmocka_run_group_tests(tests, NULL, NULL);
-  cmocka_run_group_tests(arl_small_full_tests, SetupArlSmallFull,
-                         TeardownArlSmallFull);
+  cmocka_run_group_tests(public_tests, NULL, NULL);
 
   return 0;
 }
