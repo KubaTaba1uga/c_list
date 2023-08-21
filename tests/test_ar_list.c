@@ -42,11 +42,20 @@ size_t write_values_to_array(size_t size, void *array[], int values[]) {
   return i;
 }
 
-void print_array(size_t size, void *array[size]) {
+void print_array_pointers(size_t size, void *array[size]) {
   size_t i;
   puts("{");
   for (i = 0; i < size; i++) {
     printf("%p,\n", array[i]);
+  }
+  puts("}");
+}
+
+void print_array_values(size_t size, void *array[size]) {
+  size_t i;
+  puts("{");
+  for (i = 0; i < size; i++) {
+    printf("%i,\n", *(int *)array[i]);
   }
   puts("}");
 }
@@ -73,19 +82,21 @@ int arl_empty_values[] = {};
  *    FIXTURES
  ******************************************************************************/
 
-static void initiate_l(void) {
+static int initiate_l(void) {
   void *p;
   size_t i;
 
   p = arl_init(&l, l_values_size);
   if (!p)
-    exit(1);
+    return 1;
 
   i = write_values_to_array(l_values_size, l.array, l_values);
   if (i != l_values_size)
-    exit(2);
+    return 2;
 
   l.size = l_values_size;
+
+  return 0;
 }
 
 static void cleanup_l(void) {
@@ -102,18 +113,9 @@ static void cleanup_l(void) {
  ******************************************************************************/
 
 static int setup_arl_small_full(void **state) {
-
-  void *p;
-
-  l_values = malloc(sizeof(arl_small_values));
-  if (!l_values)
-    exit(3);
-
   l_values_size = sizeof(arl_small_values) / sizeof(int);
 
-  p = memcpy(l_values, arl_small_values, l_values_size);
-  if (!p)
-    exit(4);
+  l_values = arl_small_values;
 
   initiate_l();
 
@@ -128,17 +130,9 @@ static int teardown_arl(void **state) {
 
 static int setup_arl_small_empty(void **state) {
 
-  void *p;
+  l_values_size = sizeof(arl_empty_values) / sizeof(int);
 
-  l_values = malloc(sizeof(arl_empty_values));
-  if (!l_values)
-    exit(5);
-
-  l_values_size = 0;
-
-  p = memcpy(l_values, arl_empty_values, l_values_size);
-  if (!p)
-    exit(6);
+  l_values = arl_empty_values;
 
   initiate_l();
 
@@ -204,7 +198,7 @@ void test_arl_is_i_invalid_true(void **state) {
     is_invalid = arl_is_i_invalid(&l, i_to_check[j]);
 
     if (!is_invalid) {
-      print_array(l.size, l.array);
+      print_array_pointers(l.size, l.array);
       fail_msg("arl_is_i_invalid(&l, %zu) = %s\n", i_to_check[j], "false");
     }
   }
