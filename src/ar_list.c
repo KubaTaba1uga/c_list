@@ -27,7 +27,7 @@ void *arl_init(ar_list *l, size_t default_capacity) {
   /* `default_capacity` tells maximum amount of pointers
    *     which list can store until realloc. */
   /*  `default_capacity` is parametrized for flexibility. */
-  /*  Which makes User responsible for knowing the data. */
+  /*  Which makes You responsible for knowing the data. */
 
   void *arl_array = arl_alloc_array(l, default_capacity);
 

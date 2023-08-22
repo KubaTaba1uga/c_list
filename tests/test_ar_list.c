@@ -13,7 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 /* Replace malloc/realloc/free with cmocka alternatives. */
-#define UNIT_TESTING 1
+/* #define UNIT_TESTING 1 */
 /* Test framework itself */
 #include <cmocka.h>
 
@@ -78,7 +78,9 @@ size_t free_values_from_array(size_t size, void *array[size]) {
   size_t i;
 
   for (i = 0; i < size; i++) {
+
     printf("%li\n", i);
+
     free(array[i]);
   }
   return i;
@@ -168,7 +170,11 @@ static int setup_arl_small_empty(void **state) {
 static int teardown_arl_array(void **state) {
   ar_list *l = *state;
 
-  free_values_from_array(l->size, l->array);
+  /* free_values_from_array(l->size, l->array); */
+
+  printf("%p\n", l->array);
+
+  /* free(l->array); */
 
   free(l);
 
